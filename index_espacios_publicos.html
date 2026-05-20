@@ -1,0 +1,682 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malim</title>
+    <link rel="stylesheet" href="estilo_espacios_publicos.css">
+</head>
+<body>
+
+<div id="loginScreen" class="login-screen">
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="logo-container">
+                    <img src="MalimFOTOLogin.png" alt="Malim" class="logo-login">
+                </div>
+                <h1 class="login-title">Sistema de Gestion de Actividades</h1>
+                <p class="login-subtitle">Departamento de Espacios Publicos</p>
+                <p class="login-org">Ayuntamiento de Matamoros, Tamaulipas</p>
+            </div>
+            <form id="loginForm" class="login-form" autocomplete="off" novalidate>
+                <div class="field-group">
+                    <label class="field-label" for="inputUsuario">Usuario</label>
+                    <input class="field-input" type="text" id="inputUsuario" name="usuario" placeholder="Ingrese su usuario" required autocomplete="username">
+                </div>
+                <div class="field-group">
+                    <label class="field-label" for="inputContrasena">Contrasena</label>
+                    <input class="field-input" type="password" id="inputContrasena" name="contrasena" placeholder="Ingrese su contrasena" required autocomplete="current-password">
+                </div>
+                <div id="loginError" class="login-error" style="display:none;"></div>
+                <button type="submit" class="btn-login" id="btnLogin">Iniciar Sesion</button>
+            </form>
+            <div class="login-footer"><span>Version 2.0 | 2026</span></div>
+        </div>
+    </div>
+</div>
+
+<div id="mainApp" style="display:none;">
+
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <div class="header-logo">
+                    <img src="MalimFOTOheader.png" alt="Malim" class="logo-header">
+                </div>
+                <div class="header-titles">
+                    <h1 class="header-title">Sistema de Gestion de Actividades</h1>
+                    <p class="header-sub">Departamento de Espacios Publicos &mdash; Matamoros, Tamaulipas</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="header-user" id="headerUserName">Administrador</span>
+                <span class="header-date" id="headerDate"></span>
+                <button class="btn-logout" id="btnLogout">Cerrar Sesion</button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="app-nav">
+        <div class="nav-inner">
+            <button class="nav-btn active" data-tab="captura">Captura de Actividades</button>
+            <button class="nav-btn" data-tab="dashboard">Indicadores</button>
+            <button class="nav-btn" data-tab="consultas">Consultas</button>
+            <button class="nav-btn" data-tab="admin">PMD / POA</button>
+        </div>
+    </nav>
+
+    <main class="app-main">
+
+        <section id="tab-captura" class="tab-panel active">
+            <div class="panel-header">
+                <h2 class="panel-title">Registro de Actividades Diarias</h2>
+                <p class="panel-desc">Capture las actividades ejecutadas por las cuadrillas de trabajo</p>
+            </div>
+
+            <form id="formActividad" class="activity-form" novalidate>
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <span class="card-num">1</span>
+                        <h3 class="card-title">Informacion General</h3>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label" for="selEstrategia">Estrategia <span class="req">*</span></label>
+                                <select class="field-input" id="selEstrategia" name="id_estrategia" disabled required>
+                                    <option value="">-- Seleccione estrategia --</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtOrdenTrabajo">Orden de Trabajo</label>
+                                <input class="field-input" type="text" id="txtOrdenTrabajo" name="orden_trabajo" placeholder="Ej: OT-2026-001">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="dateFecha">Fecha<span class="req">*</span></label>
+                                <input class="field-input" type="date" id="dateFecha" name="fecha" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="selLineaAccion">Linea de Accion <span class="req">*</span></label>
+                                <select class="field-input" id="selLineaAccion" name="id_linea_accion" disabled required>
+                                    <option value="">-- Seleccione estrategia primero --</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtNumArea">No. de Area</label>
+                                <div class="area-input-row">
+                                    <input class="field-input" type="number" id="txtNumArea" name="numero_area" placeholder="Ej: 5" min="1">
+                                    <button type="button" class="btn-ver-areas" id="btnVerAreas" title="Ver catalogo de areas">Ver Areas</button>
+                                </div>
+                                <span class="field-hint">Al ingresar el numero de area los campos se completan automaticamente</span>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="selIndicador">Indicadores</label>
+                                <select class="field-input" id="selIndicador" name="id_indicador" disabled>
+                                    <option value="">-- Seleccione linea primero --</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtColonia">Colonia</label>
+                                <input class="field-input" type="text" id="txtColonia" name="colonia" placeholder="Nombre de la colonia" disabled>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtCalle">Calle</label>
+                                <input class="field-input" type="text" id="txtCalle" name="calle" placeholder="Nombre de la calle" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <span class="card-num">2</span>
+                        <h3 class="card-title">Actividades</h3>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="form-row">
+                            <div class="form-field form-field--full">
+                                <label class="field-label" for="txtAcciones">Acciones</label>
+                                <input class="field-input" type="text" id="txtAcciones" name="acciones" placeholder="Describa las acciones realizadas">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="selOrigenPeticion">Origen de la Peticion</label>
+                                <select class="field-input" id="selOrigenPeticion" name="origen_peticion">
+                                    <option value="">-- Seleccione origen --</option>
+                                    <option value="App Rigo">App Rigo</option>
+                                    <option value="Martes en tu Colonia">Martes en tu Colonia</option>
+                                    <option value="Renace">Renace</option>
+                                    <option value="Descacharrizacion">Descacharrizacion</option>
+                                    <option value="Programa Propio">Programa Propio</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="selODS">ODS</label>
+                                <select class="field-input" id="selODS" name="id_ods" disabled>
+                                    <option value="">-- Seleccione ODS --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="checkbox-row">
+                            <span class="checkbox-row-label">Tipo de trabajo:</span>
+                            <label class="chk-label"><input type="checkbox" id="chkBarrida" name="barrida" value="1"><span class="chk-box"></span>Barrida</label>
+                            <label class="chk-label"><input type="checkbox" id="chkMetaliqueo" name="metaliqueo" value="1"><span class="chk-box"></span>Metaliqueo</label>
+                            <label class="chk-label"><input type="checkbox" id="chkWireado" name="wireado" value="1"><span class="chk-box"></span>Wireado</label>
+                            <label class="chk-label"><input type="checkbox" id="chkRaspado" name="raspado" value="1"><span class="chk-box"></span>Raspado</label>
+                        </div>
+                        <div class="form-row" id="camposMedicion" style="display:none;">
+                            <div class="form-field">
+                                <label class="field-label" for="txtCantidad">Cantidad</label>
+                                <input class="field-input" type="number" id="txtCantidad" name="cantidad" placeholder="0.00" step="0.01" min="0">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtSuperficie">Superficie</label>
+                                <input class="field-input" type="text" id="txtSuperficie" name="superficie" placeholder="Ej: 250 m2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <span class="card-num">3</span>
+                        <h3 class="card-title">Equipo</h3>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label" for="txtJefe">Jefe</label>
+                                <input class="field-input" type="text" id="txtJefe" name="jefe" placeholder="Nombre del jefe de cuadrilla">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtSupervisor">Supervisor</label>
+                                <input class="field-input" type="text" id="txtSupervisor" name="supervisor" placeholder="Nombre del supervisor">
+                            </div>
+                            <div class="form-field form-field--full">
+                                <label class="field-label" for="txtComentarios">Comentarios</label>
+                                <textarea class="field-input field-textarea" id="txtComentarios" name="comentarios" rows="4" placeholder="Observaciones adicionales, incidencias, notas del dia..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="btnLimpiar">Limpiar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar Actividad</button>
+                </div>
+
+            </form>
+
+            <div id="alertCaptura" class="alert" style="display:none;"></div>
+
+        </section>
+
+        <section id="tab-dashboard" class="tab-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Dashboard de Indicadores PMD</h2>
+                <p class="panel-desc">Avance por linea de accion respecto a las metas del Plan Municipal de Desarrollo</p>
+            </div>
+            <div class="kpi-grid" id="kpiGrid">
+                <div class="kpi-card">
+                    <p class="kpi-label">Total Lineas de Accion</p>
+                    <p class="kpi-value" id="kpiTotal">--</p>
+                </div>
+                <div class="kpi-card kpi-card--green">
+                    <p class="kpi-label">En Meta (Verde)</p>
+                    <p class="kpi-value" id="kpiVerde">--</p>
+                </div>
+                <div class="kpi-card kpi-card--yellow">
+                    <p class="kpi-label">En Progreso (Amarillo)</p>
+                    <p class="kpi-value" id="kpiAmarillo">--</p>
+                </div>
+                <div class="kpi-card kpi-card--red">
+                    <p class="kpi-label">En Riesgo (Rojo)</p>
+                    <p class="kpi-value" id="kpiRojo">--</p>
+                </div>
+            </div>
+            <div class="dash-controls">
+                <button class="btn btn-primary" id="btnActualizarDash">Actualizar Dashboard</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="tablaDashboard">
+                    <thead>
+                        <tr>
+                            <th>Programa</th>
+                            <th>Estrategia</th>
+                            <th>Linea de Accion</th>
+                            <th>Descripcion</th>
+                            <th>Unidad</th>
+                            <th>Meta</th>
+                            <th>Realizado</th>
+                            <th>%</th>
+                            <th>Semaforo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashBody">
+                        <tr><td colspan="9" class="td-empty">Presione Actualizar Dashboard</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="tab-consultas" class="tab-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Consulta de Actividades Registradas</h2>
+                <p class="panel-desc">Historial completo de actividades capturadas en el sistema</p>
+            </div>
+            <div class="dash-controls">
+                <button class="btn btn-primary" id="btnCargarConsulta">Cargar Registros</button>
+            </div>
+            <div id="alertConsultas" class="alert" style="display:none;"></div>
+            <div class="table-wrapper">
+                <table class="data-table" id="tablaConsultas">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Fecha</th>
+                            <th>Orden Trabajo</th>
+                            <th>Estrategia</th>
+                            <th>Linea de Accion</th>
+                            <th>No. Area</th>
+                            <th>Colonia</th>
+                            <th>Calle</th>
+                            <th>Cantidad</th>
+                            <th>Jefe</th>
+                            <th>Supervisor</th>
+                            <th>Origen</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="consultasBody">
+                        <tr><td colspan="13" class="td-empty">Presione Cargar Registros para consultar</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================================================
+             TAB: PMD / POA
+        ================================================ -->
+        <section id="tab-admin" class="tab-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Administracion - PMD y POA</h2>
+                <p class="panel-desc">Gestion del Plan Municipal de Desarrollo y Programa Operativo Anual</p>
+            </div>
+            <div class="sub-tab-nav">
+                <button class="sub-tab-btn active" data-subtab="pmd">Plan Municipal de Desarrollo (PMD)</button>
+                <button class="sub-tab-btn" data-subtab="poa">Programa Operativo Anual (POA)</button>
+            </div>
+
+            <!-- Sub-panel PMD -->
+            <div id="subtab-pmd" class="sub-panel active">
+                <div id="alertPMD" class="alert" style="display:none;"></div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tablaPMD">
+                        <thead>
+                            <tr>
+                                <th>Linea de Accion</th>
+                                <th>Programa</th>
+                                <th>Estrategia</th>
+                                <th>Descripcion</th>
+                                <th>Meta Trianual</th>
+                                <th>Meta Anual</th>
+                                <th>Unidad</th>
+                                <th>Indicador</th>
+                                <th>Alin. Nac.</th>
+                                <th>Alin. Est.</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pmdBody">
+                            <tr><td colspan="11" class="td-empty">Cargando datos del PMD...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sub-panel POA -->
+            <div id="subtab-poa" class="sub-panel" style="display:none;">
+                <div class="dash-controls">
+                    <button class="btn btn-primary" id="btnNuevoPOA">+ Nuevo Registro POA</button>
+                </div>
+                <div id="alertPOA" class="alert" style="display:none;"></div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tablaPOA">
+                        <thead>
+                            <tr>
+                                <th>Linea de Accion</th>
+                                <th>Ejercicio</th>
+                                <th>Programa</th>
+                                <th>Pres. Municipal</th>
+                                <th>Pres. Estatal</th>
+                                <th>Pres. Federal</th>
+                                <th>Total</th>
+                                <th>Rubro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poaBody">
+                            <tr><td colspan="9" class="td-empty">Cargando datos del POA...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="app-footer">
+        <p>Sistema de Gestion de Actividades &mdash; Departamento de Espacios Publicos &mdash; Ayuntamiento de Matamoros, Tamaulipas &mdash; 2026</p>
+    </footer>
+
+    <!-- Modal Edicion PMD -->
+    <div id="modalPMD" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Linea de Accion PMD: <span id="modalPMDLinea"></span></h3>
+                <button class="modal-close" id="btnCerrarPMD" type="button">&#215;</button>
+            </div>
+            <div class="modal-body">
+                <div id="alertPMDModal" class="alert" style="display:none;"></div>
+                <form id="formPMD" novalidate>
+                    <input type="hidden" id="pmdLinea">
+                    <p class="modal-section-title">Informacion General</p>
+                    <div class="form-row">
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="pmdDescripcion">Descripcion de la Linea de Accion</label>
+                            <input class="field-input" type="text" id="pmdDescripcion">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdMetaTrianual">Meta Trianual</label>
+                            <input class="field-input" type="number" id="pmdMetaTrianual" step="0.01" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdMetaAnual">Meta Anual</label>
+                            <input class="field-input" type="number" id="pmdMetaAnual" step="0.01" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdUnidad">Unidad de Medida</label>
+                            <input class="field-input" type="text" id="pmdUnidad">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdIndicador">Clave Indicador</label>
+                            <input class="field-input" type="text" id="pmdIndicador">
+                        </div>
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="pmdDescIndicador">Descripcion del Indicador</label>
+                            <input class="field-input" type="text" id="pmdDescIndicador">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdAlinNac">Alineacion Plan Nacional</label>
+                            <input class="field-input" type="text" id="pmdAlinNac" placeholder="Ej: 4.3">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdAlinEst">Alineacion Plan Estatal</label>
+                            <input class="field-input" type="text" id="pmdAlinEst" placeholder="Ej: E1.2">
+                        </div>
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="pmdInstitucion">Institucion Responsable</label>
+                            <input class="field-input" type="text" id="pmdInstitucion">
+                        </div>
+                    </div>
+                    <p class="modal-section-title">Cantidades Programadas por Mes (Ciclo Oct-Sep)</p>
+                    <div class="meses-grid">
+                        <div class="mes-field"><label class="field-label">Oct</label><input class="field-input" type="number" id="pmdOct" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Nov</label><input class="field-input" type="number" id="pmdNov" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Dic</label><input class="field-input" type="number" id="pmdDic" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Ene</label><input class="field-input" type="number" id="pmdEne" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Feb</label><input class="field-input" type="number" id="pmdFeb" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Mar</label><input class="field-input" type="number" id="pmdMar" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Abr</label><input class="field-input" type="number" id="pmdAbr" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">May</label><input class="field-input" type="number" id="pmdMay" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Jun</label><input class="field-input" type="number" id="pmdJun" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Jul</label><input class="field-input" type="number" id="pmdJul" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Ago</label><input class="field-input" type="number" id="pmdAgo" step="0.01" min="0" placeholder="0"></div>
+                        <div class="mes-field"><label class="field-label">Sep</label><input class="field-input" type="number" id="pmdSep" step="0.01" min="0" placeholder="0"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="btnCancelarPMD">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarPMD">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edicion POA -->
+    <div id="modalPOA" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalPOATitulo">Registro POA</h3>
+                <button class="modal-close" id="btnCerrarPOA" type="button">&#215;</button>
+            </div>
+            <div class="modal-body">
+                <div id="alertPOAModal" class="alert" style="display:none;"></div>
+                <form id="formPOA" novalidate>
+                    <input type="hidden" id="poaId">
+                    <p class="modal-section-title">Identificacion</p>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label" for="poaLineaAccion">Linea de Accion <span class="req">*</span></label>
+                            <select class="field-input" id="poaLineaAccion" required>
+                                <option value="">-- Seleccione linea --</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaEjercicio">Ejercicio (Anio) <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="poaEjercicio" min="2020" max="2040" placeholder="2026" required>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaFechaAprobacion">Fecha de Aprobacion</label>
+                            <input class="field-input" type="date" id="poaFechaAprobacion">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaRubro">Rubro / Cuenta Contable</label>
+                            <input class="field-input" type="text" id="poaRubro" placeholder="Ej: 3.3.1">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaAlinNac">Alineacion Plan Nacional</label>
+                            <input class="field-input" type="text" id="poaAlinNac" placeholder="Ej: 4.3">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaAlinEst">Alineacion Plan Estatal</label>
+                            <input class="field-input" type="text" id="poaAlinEst" placeholder="Ej: E1.2">
+                        </div>
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="poaDescripcion">Descripcion de Compras / Gastos Planeados</label>
+                            <textarea class="field-input field-textarea" id="poaDescripcion" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <p class="modal-section-title">Presupuesto Estimado</p>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label" for="poaPresMun">Presupuesto Municipal ($)</label>
+                            <input class="field-input" type="number" id="poaPresMun" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaPresEst">Presupuesto Estatal ($)</label>
+                            <input class="field-input" type="number" id="poaPresEst" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="poaPresFed">Presupuesto Federal ($)</label>
+                            <input class="field-input" type="number" id="poaPresFed" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="btnCancelarPOA">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarPOA">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Actividad</h3>
+                <button class="modal-close" id="btnCerrarModal" type="button">&#215;</button>
+            </div>
+            <div class="modal-body">
+                <div id="alertEditar" class="alert" style="display:none;"></div>
+                <form id="formEditar" novalidate>
+                    <input type="hidden" id="editIdActividad">
+                    <p class="modal-section-title">Informacion General</p>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label" for="editSelEstrategia">Estrategia <span class="req">*</span></label>
+                            <select class="field-input" id="editSelEstrategia" required>
+                                <option value="">-- Seleccione estrategia --</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtOrdenTrabajo">Orden de Trabajo</label>
+                            <input class="field-input" type="text" id="editTxtOrdenTrabajo" placeholder="No. de orden">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editDateFecha">Fecha <span class="req">*</span></label>
+                            <input class="field-input" type="date" id="editDateFecha" required>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editSelLineaAccion">Linea de Accion <span class="req">*</span></label>
+                            <select class="field-input" id="editSelLineaAccion" required>
+                                <option value="">-- Seleccione estrategia primero --</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtNumArea">No. de Area</label>
+                            <input class="field-input" type="number" id="editTxtNumArea" placeholder="Ej: 5" min="1">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editSelIndicador">Indicador</label>
+                            <select class="field-input" id="editSelIndicador">
+                                <option value="">-- Seleccione linea primero --</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtColonia">Colonia</label>
+                            <input class="field-input" type="text" id="editTxtColonia">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtCalle">Calle</label>
+                            <input class="field-input" type="text" id="editTxtCalle">
+                        </div>
+                    </div>
+                    <p class="modal-section-title">Actividades</p>
+                    <div class="form-row">
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="editTxtAcciones">Acciones</label>
+                            <input class="field-input" type="text" id="editTxtAcciones">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editSelOrigenPeticion">Origen de la Peticion</label>
+                            <select class="field-input" id="editSelOrigenPeticion">
+                                <option value="">-- Seleccione origen --</option>
+                                <option value="App Rigo">App Rigo</option>
+                                <option value="Martes en tu Colonia">Martes en tu Colonia</option>
+                                <option value="Renace">Renace</option>
+                                <option value="Descacharrizacion">Descacharrizacion</option>
+                                <option value="Programa Propio">Programa Propio</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editSelODS">ODS</label>
+                            <select class="field-input" id="editSelODS">
+                                <option value="">-- Seleccione ODS --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="checkbox-row">
+                        <span class="checkbox-row-label">Tipo de trabajo:</span>
+                        <label class="chk-label"><input type="checkbox" id="editChkBarrida"><span class="chk-box"></span>Barrida</label>
+                        <label class="chk-label"><input type="checkbox" id="editChkMetaliqueo"><span class="chk-box"></span>Metaliqueo</label>
+                        <label class="chk-label"><input type="checkbox" id="editChkWireado"><span class="chk-box"></span>Wireado</label>
+                        <label class="chk-label"><input type="checkbox" id="editChkRaspado"><span class="chk-box"></span>Raspado</label>
+                    </div>
+                    <div class="form-row" id="editCamposMedicion" style="display:none;">
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtCantidad">Cantidad</label>
+                            <input class="field-input" type="number" id="editTxtCantidad" step="0.01" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtSuperficie">Superficie</label>
+                            <input class="field-input" type="text" id="editTxtSuperficie">
+                        </div>
+                    </div>
+                    <p class="modal-section-title">Equipo</p>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtJefe">Jefe</label>
+                            <input class="field-input" type="text" id="editTxtJefe">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtSupervisor">Supervisor</label>
+                            <input class="field-input" type="text" id="editTxtSupervisor">
+                        </div>
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="editTxtComentarios">Comentarios</label>
+                            <textarea class="field-input field-textarea" id="editTxtComentarios" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="btnCancelarEditar">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarEditar">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Catalogo de Areas -->
+    <div id="modalAreas" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card modal-card--wide">
+            <div class="modal-header">
+                <h3 class="modal-title">Catalogo de Areas</h3>
+                <button class="modal-close" id="btnCerrarAreas" type="button">&#215;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrapper">
+                    <table class="data-table" id="tablaAreas">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Nombre / Ubicacion</th>
+                                <th>Tipo</th>
+                                <th>Entre Calles</th>
+                                <th>Prioritaria</th>
+                                <th>Linea de Accion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="areasBody">
+                            <tr><td colspan="6" class="td-empty">Cargando areas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmacion personalizada -->
+    <div id="modalConfirm" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card modal-card--sm">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmTitle">Confirmar</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMsg" class="confirm-msg"></p>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="btnConfirmNo">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmSi">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="script_espacios_publicos.js"></script>
+</body>
+</html>
