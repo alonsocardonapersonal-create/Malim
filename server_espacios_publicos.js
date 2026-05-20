@@ -189,8 +189,12 @@ app.post('/api/actividades', async (req, res) => {
         const {
             id_estrategia, orden_trabajo, fecha, id_linea_accion,
             numero_area, id_indicador, colonia, calle,
-            acciones, id_ods, cantidad, superficie,
+            acciones, id_ods, superficie,
             barrida, metaliqueo, wireado, raspado,
+            cantidad_barrida, superficie_barrida,
+            cantidad_metaliqueo, superficie_metaliqueo,
+            cantidad_wireado, superficie_wireado,
+            cantidad_raspado, superficie_raspado,
             jefe, supervisor, comentarios, origen_peticion
         } = req.body;
 
@@ -198,14 +202,24 @@ app.post('/api/actividades', async (req, res) => {
             return res.status(400).json({ error: 'Campos obligatorios: estrategia, fecha, linea de accion' });
         }
 
+        const totalCantidad =
+            (cantidad_barrida    ? parseFloat(cantidad_barrida)    : 0) +
+            (cantidad_metaliqueo ? parseFloat(cantidad_metaliqueo) : 0) +
+            (cantidad_wireado    ? parseFloat(cantidad_wireado)    : 0) +
+            (cantidad_raspado    ? parseFloat(cantidad_raspado)    : 0) || null;
+
         const result = await pool.query(
             `INSERT INTO "Actividades_Diarias" (
                 "ID_Estrategia", "Orden_Trabajo", "Fecha", "ID_Linea_Accion",
                 "Numero_Area", "ID_Indicador", "Colonia", "Calle",
                 "Acciones", "ID_ODS", "Cantidad", "Superficie",
                 "Barrida", "Metaliqueo", "Wireado", "Raspado",
+                "Cantidad_Barrida", "Superficie_Barrida",
+                "Cantidad_Metaliqueo", "Superficie_Metaliqueo",
+                "Cantidad_Wireado", "Superficie_Wireado",
+                "Cantidad_Raspado", "Superficie_Raspado",
                 "Jefe", "Supervisor", "Comentarios", "Origen_Peticion"
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
             RETURNING "ID_Actividad"`,
             [
                 parseInt(id_estrategia),
@@ -218,12 +232,20 @@ app.post('/api/actividades', async (req, res) => {
                 calle         || null,
                 acciones      || null,
                 id_ods        ? parseInt(id_ods)        : null,
-                cantidad      != null && cantidad !== '' ? parseFloat(cantidad) : null,
+                totalCantidad,
                 superficie    || null,
                 barrida    ? true : false,
                 metaliqueo ? true : false,
                 wireado    ? true : false,
                 raspado    ? true : false,
+                cantidad_barrida    != null && cantidad_barrida    !== '' ? parseFloat(cantidad_barrida)    : null,
+                superficie_barrida    || null,
+                cantidad_metaliqueo != null && cantidad_metaliqueo !== '' ? parseFloat(cantidad_metaliqueo) : null,
+                superficie_metaliqueo || null,
+                cantidad_wireado    != null && cantidad_wireado    !== '' ? parseFloat(cantidad_wireado)    : null,
+                superficie_wireado    || null,
+                cantidad_raspado    != null && cantidad_raspado    !== '' ? parseFloat(cantidad_raspado)    : null,
+                superficie_raspado    || null,
                 jefe        || null,
                 supervisor  || null,
                 comentarios || null,
@@ -246,7 +268,8 @@ app.get('/api/actividades', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT
-                ad."ID_Actividad", ad."Orden_Trabajo", ad."Fecha",
+                ad."ID_Actividad", ad."Orden_Trabajo",
+                TO_CHAR(ad."Fecha", 'YYYY-MM-DD') AS "Fecha",
                 e."Clave_Estrategia", e."Nombre_Estrategia",
                 la."Clave_Linea", la."Descripcion_Linea",
                 ad."Numero_Area", ca."Ubicacion",
@@ -254,6 +277,10 @@ app.get('/api/actividades', async (req, res) => {
                 ad."Acciones", o."Nombre_ODS",
                 ad."Cantidad", ad."Superficie",
                 ad."Barrida", ad."Metaliqueo", ad."Wireado", ad."Raspado",
+                ad."Cantidad_Barrida", ad."Superficie_Barrida",
+                ad."Cantidad_Metaliqueo", ad."Superficie_Metaliqueo",
+                ad."Cantidad_Wireado", ad."Superficie_Wireado",
+                ad."Cantidad_Raspado", ad."Superficie_Raspado",
                 ad."Jefe", ad."Supervisor", ad."Comentarios", ad."Origen_Peticion",
                 ad."Fecha_Registro"
             FROM "Actividades_Diarias" ad
@@ -281,6 +308,10 @@ app.get('/api/actividades/:id', async (req, res) => {
                 "Colonia", "Calle", "Acciones", "ID_ODS",
                 "Cantidad", "Superficie",
                 "Barrida", "Metaliqueo", "Wireado", "Raspado",
+                "Cantidad_Barrida", "Superficie_Barrida",
+                "Cantidad_Metaliqueo", "Superficie_Metaliqueo",
+                "Cantidad_Wireado", "Superficie_Wireado",
+                "Cantidad_Raspado", "Superficie_Raspado",
                 "Jefe", "Supervisor", "Comentarios", "Origen_Peticion"
              FROM "Actividades_Diarias"
              WHERE "ID_Actividad" = $1`,
@@ -300,23 +331,38 @@ app.put('/api/actividades/:id', async (req, res) => {
         const {
             id_estrategia, orden_trabajo, fecha, id_linea_accion,
             numero_area, id_indicador, colonia, calle,
-            acciones, id_ods, cantidad, superficie,
+            acciones, id_ods, superficie,
             barrida, metaliqueo, wireado, raspado,
+            cantidad_barrida, superficie_barrida,
+            cantidad_metaliqueo, superficie_metaliqueo,
+            cantidad_wireado, superficie_wireado,
+            cantidad_raspado, superficie_raspado,
             jefe, supervisor, comentarios, origen_peticion
         } = req.body;
         if (!id_estrategia || !fecha || !id_linea_accion) {
             return res.status(400).json({ error: 'Campos obligatorios: estrategia, fecha, linea de accion' });
         }
+        const totalCantidad =
+            (cantidad_barrida    ? parseFloat(cantidad_barrida)    : 0) +
+            (cantidad_metaliqueo ? parseFloat(cantidad_metaliqueo) : 0) +
+            (cantidad_wireado    ? parseFloat(cantidad_wireado)    : 0) +
+            (cantidad_raspado    ? parseFloat(cantidad_raspado)    : 0) || null;
+
         await pool.query(
             `UPDATE "Actividades_Diarias" SET
-                "ID_Estrategia"   = $1,  "Orden_Trabajo"   = $2,  "Fecha"           = $3,
-                "ID_Linea_Accion" = $4,  "Numero_Area"     = $5,  "ID_Indicador"    = $6,
-                "Colonia"         = $7,  "Calle"           = $8,  "Acciones"        = $9,
-                "ID_ODS"          = $10, "Cantidad"        = $11, "Superficie"      = $12,
-                "Barrida"         = $13, "Metaliqueo"      = $14, "Wireado"         = $15,
-                "Raspado"         = $16, "Jefe"            = $17, "Supervisor"      = $18,
-                "Comentarios"     = $19, "Origen_Peticion" = $20
-             WHERE "ID_Actividad" = $21`,
+                "ID_Estrategia"      = $1,  "Orden_Trabajo"       = $2,  "Fecha"              = $3,
+                "ID_Linea_Accion"    = $4,  "Numero_Area"         = $5,  "ID_Indicador"       = $6,
+                "Colonia"            = $7,  "Calle"               = $8,  "Acciones"           = $9,
+                "ID_ODS"             = $10, "Cantidad"            = $11, "Superficie"         = $12,
+                "Barrida"            = $13, "Metaliqueo"          = $14, "Wireado"            = $15,
+                "Raspado"            = $16,
+                "Cantidad_Barrida"   = $17, "Superficie_Barrida"  = $18,
+                "Cantidad_Metaliqueo"= $19, "Superficie_Metaliqueo"=$20,
+                "Cantidad_Wireado"   = $21, "Superficie_Wireado"  = $22,
+                "Cantidad_Raspado"   = $23, "Superficie_Raspado"  = $24,
+                "Jefe"               = $25, "Supervisor"          = $26,
+                "Comentarios"        = $27, "Origen_Peticion"     = $28
+             WHERE "ID_Actividad" = $29`,
             [
                 parseInt(id_estrategia),
                 orden_trabajo || null,
@@ -328,12 +374,20 @@ app.put('/api/actividades/:id', async (req, res) => {
                 calle        || null,
                 acciones     || null,
                 id_ods       ? parseInt(id_ods)       : null,
-                cantidad     != null && cantidad !== '' ? parseFloat(cantidad) : null,
+                totalCantidad,
                 superficie   || null,
                 barrida    ? true : false,
                 metaliqueo ? true : false,
                 wireado    ? true : false,
                 raspado    ? true : false,
+                cantidad_barrida    != null && cantidad_barrida    !== '' ? parseFloat(cantidad_barrida)    : null,
+                superficie_barrida    || null,
+                cantidad_metaliqueo != null && cantidad_metaliqueo !== '' ? parseFloat(cantidad_metaliqueo) : null,
+                superficie_metaliqueo || null,
+                cantidad_wireado    != null && cantidad_wireado    !== '' ? parseFloat(cantidad_wireado)    : null,
+                superficie_wireado    || null,
+                cantidad_raspado    != null && cantidad_raspado    !== '' ? parseFloat(cantidad_raspado)    : null,
+                superficie_raspado    || null,
                 jefe        || null,
                 supervisor  || null,
                 comentarios || null,

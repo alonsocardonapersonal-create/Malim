@@ -85,7 +85,7 @@
                         <div class="form-row">
                             <div class="form-field">
                                 <label class="field-label" for="selEstrategia">Estrategia <span class="req">*</span></label>
-                                <select class="field-input" id="selEstrategia" name="id_estrategia" disabled required>
+                                <select class="field-input" id="selEstrategia" name="id_estrategia" required>
                                     <option value="">-- Seleccione estrategia --</option>
                                 </select>
                             </div>
@@ -99,7 +99,7 @@
                             </div>
                             <div class="form-field">
                                 <label class="field-label" for="selLineaAccion">Linea de Accion <span class="req">*</span></label>
-                                <select class="field-input" id="selLineaAccion" name="id_linea_accion" disabled required>
+                                <select class="field-input" id="selLineaAccion" name="id_linea_accion" required>
                                     <option value="">-- Seleccione estrategia primero --</option>
                                 </select>
                             </div>
@@ -112,10 +112,11 @@
                                 <span class="field-hint">Al ingresar el numero de area los campos se completan automaticamente</span>
                             </div>
                             <div class="form-field">
-                                <label class="field-label" for="selIndicador">Indicadores</label>
-                                <select class="field-input" id="selIndicador" name="id_indicador" disabled>
-                                    <option value="">-- Seleccione linea primero --</option>
-                                </select>
+                                <label class="field-label">Indicador</label>
+                                <input type="hidden" id="hidIndicador" name="id_indicador">
+                                <div id="indicadorStatus" class="indicador-status-display">
+                                    <span style="opacity:0.5">-- Seleccione linea de accion --</span>
+                                </div>
                             </div>
                             <div class="form-field">
                                 <label class="field-label" for="txtColonia">Colonia</label>
@@ -166,14 +167,48 @@
                             <label class="chk-label"><input type="checkbox" id="chkWireado" name="wireado" value="1"><span class="chk-box"></span>Wireado</label>
                             <label class="chk-label"><input type="checkbox" id="chkRaspado" name="raspado" value="1"><span class="chk-box"></span>Raspado</label>
                         </div>
-                        <div class="form-row" id="camposMedicion" style="display:none;">
+                        <div id="secBarrida" class="tipo-medicion-row" style="display:none;">
+                            <span class="tipo-medicion-label">Barrida:</span>
                             <div class="form-field">
-                                <label class="field-label" for="txtCantidad">Cantidad</label>
-                                <input class="field-input" type="number" id="txtCantidad" name="cantidad" placeholder="0.00" step="0.01" min="0">
+                                <label class="field-label" for="txtCantidadBarrida">Cantidad</label>
+                                <input class="field-input" type="number" id="txtCantidadBarrida" placeholder="0.00" step="0.01" min="0">
                             </div>
                             <div class="form-field">
-                                <label class="field-label" for="txtSuperficie">Superficie</label>
-                                <input class="field-input" type="text" id="txtSuperficie" name="superficie" placeholder="Ej: 250 m2">
+                                <label class="field-label" for="txtSuperficieBarrida">Superficie</label>
+                                <input class="field-input" type="text" id="txtSuperficieBarrida" placeholder="Ej: 250 m2">
+                            </div>
+                        </div>
+                        <div id="secMetaliqueo" class="tipo-medicion-row" style="display:none;">
+                            <span class="tipo-medicion-label">Metaliqueo:</span>
+                            <div class="form-field">
+                                <label class="field-label" for="txtCantidadMetaliqueo">Cantidad</label>
+                                <input class="field-input" type="number" id="txtCantidadMetaliqueo" placeholder="0.00" step="0.01" min="0">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtSuperficieMetaliqueo">Superficie</label>
+                                <input class="field-input" type="text" id="txtSuperficieMetaliqueo" placeholder="Ej: 250 m2">
+                            </div>
+                        </div>
+                        <div id="secWireado" class="tipo-medicion-row" style="display:none;">
+                            <span class="tipo-medicion-label">Wireado:</span>
+                            <div class="form-field">
+                                <label class="field-label" for="txtCantidadWireado">Cantidad</label>
+                                <input class="field-input" type="number" id="txtCantidadWireado" placeholder="0.00" step="0.01" min="0">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtSuperficieWireado">Superficie</label>
+                                <input class="field-input" type="text" id="txtSuperficieWireado" placeholder="Ej: 250 m2">
+                            </div>
+                        </div>
+                        <div id="secRaspado" class="tipo-medicion-row" style="display:none;">
+                            <span class="tipo-medicion-label">Raspado:</span>
+                            <div class="form-field">
+                                <label class="field-label" for="txtCantidadRaspado">Cantidad</label>
+                                <input class="field-input" type="number" id="txtCantidadRaspado" placeholder="0.00" step="0.01" min="0">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label" for="txtSuperficieRaspado">Superficie</label>
+                                <input class="field-input" type="text" id="txtSuperficieRaspado" placeholder="Ej: 250 m2">
                             </div>
                         </div>
                     </div>
@@ -550,10 +585,11 @@
                             <input class="field-input" type="number" id="editTxtNumArea" placeholder="Ej: 5" min="1">
                         </div>
                         <div class="form-field">
-                            <label class="field-label" for="editSelIndicador">Indicador</label>
-                            <select class="field-input" id="editSelIndicador">
-                                <option value="">-- Seleccione linea primero --</option>
-                            </select>
+                            <label class="field-label">Indicador</label>
+                            <input type="hidden" id="editHidIndicador">
+                            <div id="editIndicadorStatus" class="indicador-status-display">
+                                <span style="opacity:0.5">-- Seleccione linea de accion --</span>
+                            </div>
                         </div>
                         <div class="form-field">
                             <label class="field-label" for="editTxtColonia">Colonia</label>
@@ -596,14 +632,48 @@
                         <label class="chk-label"><input type="checkbox" id="editChkWireado"><span class="chk-box"></span>Wireado</label>
                         <label class="chk-label"><input type="checkbox" id="editChkRaspado"><span class="chk-box"></span>Raspado</label>
                     </div>
-                    <div class="form-row" id="editCamposMedicion" style="display:none;">
+                    <div id="editSecBarrida" class="tipo-medicion-row" style="display:none;">
+                        <span class="tipo-medicion-label">Barrida:</span>
                         <div class="form-field">
-                            <label class="field-label" for="editTxtCantidad">Cantidad</label>
-                            <input class="field-input" type="number" id="editTxtCantidad" step="0.01" min="0">
+                            <label class="field-label" for="editTxtCantidadBarrida">Cantidad</label>
+                            <input class="field-input" type="number" id="editTxtCantidadBarrida" placeholder="0.00" step="0.01" min="0">
                         </div>
                         <div class="form-field">
-                            <label class="field-label" for="editTxtSuperficie">Superficie</label>
-                            <input class="field-input" type="text" id="editTxtSuperficie">
+                            <label class="field-label" for="editTxtSuperficieBarrida">Superficie</label>
+                            <input class="field-input" type="text" id="editTxtSuperficieBarrida" placeholder="Ej: 250 m2">
+                        </div>
+                    </div>
+                    <div id="editSecMetaliqueo" class="tipo-medicion-row" style="display:none;">
+                        <span class="tipo-medicion-label">Metaliqueo:</span>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtCantidadMetaliqueo">Cantidad</label>
+                            <input class="field-input" type="number" id="editTxtCantidadMetaliqueo" placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtSuperficieMetaliqueo">Superficie</label>
+                            <input class="field-input" type="text" id="editTxtSuperficieMetaliqueo" placeholder="Ej: 250 m2">
+                        </div>
+                    </div>
+                    <div id="editSecWireado" class="tipo-medicion-row" style="display:none;">
+                        <span class="tipo-medicion-label">Wireado:</span>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtCantidadWireado">Cantidad</label>
+                            <input class="field-input" type="number" id="editTxtCantidadWireado" placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtSuperficieWireado">Superficie</label>
+                            <input class="field-input" type="text" id="editTxtSuperficieWireado" placeholder="Ej: 250 m2">
+                        </div>
+                    </div>
+                    <div id="editSecRaspado" class="tipo-medicion-row" style="display:none;">
+                        <span class="tipo-medicion-label">Raspado:</span>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtCantidadRaspado">Cantidad</label>
+                            <input class="field-input" type="number" id="editTxtCantidadRaspado" placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="editTxtSuperficieRaspado">Superficie</label>
+                            <input class="field-input" type="text" id="editTxtSuperficieRaspado" placeholder="Ej: 250 m2">
                         </div>
                     </div>
                     <p class="modal-section-title">Equipo</p>

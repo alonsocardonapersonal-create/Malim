@@ -523,6 +523,30 @@ select.field-input { cursor: pointer; }
 .semaforo-amarillo .semaforo-dot { background: #f59e0b; }
 .semaforo-rojo    .semaforo-dot { background: var(--danger); }
 
+/* Indicador status display (read-only badge in form) */
+.indicador-status-display {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface);
+    min-height: 36px; font-size: 0.875rem;
+    cursor: default; user-select: none; pointer-events: none;
+}
+/* When it also has semaforo classes, override border-radius to match badge */
+.indicador-status-display.semaforo { border-radius: 20px; }
+
+/* Tipo de trabajo — per-type measurement rows */
+.tipo-medicion-row {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 8px 12px; margin-bottom: 6px;
+    background: var(--surface-alt, #f8fafc);
+    border-radius: 6px; border-left: 3px solid var(--green-primary, #3d8b6e);
+}
+.tipo-medicion-label {
+    font-weight: 600; min-width: 96px;
+    color: var(--text-heading, #1a3c34); font-size: 0.875rem;
+}
+.tipo-medicion-row .form-field { margin-bottom: 0; }
+
 /* ============================================================
    FOOTER
 ============================================================ */

@@ -11,7 +11,7 @@ const API = '';   // mismo origen (servidor Node.js)
 
 function fmt(fecha) {
     if (!fecha) return '';
-    const d = new Date(fecha + 'T00:00:00');
+    const d = new Date(String(fecha).substring(0, 10) + 'T00:00:00');
     return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
@@ -154,37 +154,37 @@ function autocompletarArea() {
     const num = parseInt(document.getElementById('txtNumArea').value);
     if (!num) return;
     apiFetch('/api/areas/' + num).then(data => {
-        const a      = data.data;
+        const a        = data.data;
         const selEst   = document.getElementById('selEstrategia');
         const selLinea = document.getElementById('selLineaAccion');
-        const selInd   = document.getElementById('selIndicador');
         const selODS   = document.getElementById('selODS');
         if (a.Ubicacion)     document.getElementById('txtColonia').value = a.Ubicacion;
         if (a.Entre_Calle_1) document.getElementById('txtCalle').value   = a.Entre_Calle_1;
-        if (a.ID_Estrategia) {
+        // Solo actualizar estrategia y linea si no se ha elegido manualmente
+        if (!selEst.value && a.ID_Estrategia) {
             selEst.value = a.ID_Estrategia;
             selLinea.innerHTML = '<option value="">-- Seleccione linea de accion --</option>';
-            selInd.innerHTML   = '<option value="">-- Seleccione indicador --</option>';
             apiFetch('/api/lineas-accion?id_estrategia=' + a.ID_Estrategia).then(lineasData => {
                 lineasData.data.forEach(la => {
                     const opt = document.createElement('option');
                     opt.value = la.ID_Linea_Accion;
+                    opt.setAttribute('data-estrategia', la.ID_Estrategia);
                     opt.textContent = la.Clave_Linea + ' - ' + la.Descripcion_Linea;
                     selLinea.appendChild(opt);
                 });
                 if (a.ID_Linea_Accion) {
                     selLinea.value = a.ID_Linea_Accion;
-                    apiFetch('/api/indicadores?id_linea=' + a.ID_Linea_Accion).then(indData => {
-                        indData.data.forEach(ind => {
-                            const opt = document.createElement('option');
-                            opt.value = ind.ID_Indicador;
-                            opt.textContent = ind.Codigo_Indicador + ' - ' + ind.Descripcion;
-                            selInd.appendChild(opt);
-                        });
-                        if (a.ID_Indicador) selInd.value = a.ID_Indicador;
-                    }).catch(() => {});
+                    const selectedOpt = selLinea.options[selLinea.selectedIndex];
+                    const claveLinea  = selectedOpt ? selectedOpt.text.split(' - ')[0].trim() : '';
+                    mostrarIndicadorStatus(a.ID_Linea_Accion, claveLinea, 'hidIndicador', 'indicadorStatus').catch(() => {});
                 }
             }).catch(() => {});
+        } else if (!selLinea.value && a.ID_Linea_Accion) {
+            // Estrategia ya elegida pero linea no — solo actualizar linea
+            selLinea.value = a.ID_Linea_Accion;
+            const selectedOpt = selLinea.options[selLinea.selectedIndex];
+            const claveLinea  = selectedOpt ? selectedOpt.text.split(' - ')[0].trim() : '';
+            mostrarIndicadorStatus(a.ID_Linea_Accion, claveLinea, 'hidIndicador', 'indicadorStatus').catch(() => {});
         }
         if (a.ID_ODS) selODS.value = a.ID_ODS;
     }).catch(() => {});
@@ -241,10 +241,52 @@ document.getElementById('modalAreas').addEventListener('click', function(e) {
 async function cargarCatalogos() {
     await Promise.all([
         cargarEstrategias(),
+        cargarTodasLineas(),
         cargarODS(),
         cargarEstrategiasEdit(),
         cargarODSEdit()
     ]);
+}
+
+async function cargarTodasLineas() {
+    try {
+        const data = await apiFetch('/api/lineas-accion');
+        const sel = document.getElementById('selLineaAccion');
+        sel.innerHTML = '<option value="">-- Seleccione linea de accion --</option>';
+        data.data.forEach(la => {
+            const opt = document.createElement('option');
+            opt.value = la.ID_Linea_Accion;
+            opt.setAttribute('data-estrategia', la.ID_Estrategia);
+            opt.textContent = la.Clave_Linea + ' - ' + la.Descripcion_Linea;
+            sel.appendChild(opt);
+        });
+    } catch (err) {
+        console.error('Error al cargar lineas de accion:', err);
+    }
+}
+
+async function mostrarIndicadorStatus(idLinea, claveLinea, hidId, statusId) {
+    const hidInd   = document.getElementById(hidId);
+    const statusDiv = document.getElementById(statusId);
+    hidInd.value = '';
+    statusDiv.className = 'indicador-status-display';
+    statusDiv.innerHTML = '<span style="opacity:0.5">--</span>';
+    if (!idLinea) return;
+    try {
+        const indData = await apiFetch('/api/indicadores?id_linea=' + idLinea);
+        if (indData.data.length > 0) hidInd.value = indData.data[0].ID_Indicador;
+        const dashData = await apiFetch('/api/dashboard');
+        const row = dashData.data.find(d => d.Clave_Linea === claveLinea);
+        if (row) {
+            const s = row.Semaforo;
+            const labels = { VERDE: 'En meta', AMARILLO: 'En progreso', ROJO: 'En riesgo' };
+            const css    = { VERDE: 'semaforo-verde', AMARILLO: 'semaforo-amarillo', ROJO: 'semaforo-rojo' };
+            statusDiv.className = 'indicador-status-display semaforo ' + (css[s] || '');
+            statusDiv.innerHTML = `<span class="semaforo-dot"></span>${labels[s] || s}`;
+        }
+    } catch (err) {
+        console.error('Error al cargar indicador:', err);
+    }
 }
 
 async function cargarEstrategias() {
@@ -265,20 +307,22 @@ async function cargarEstrategias() {
 
 document.getElementById('selEstrategia').addEventListener('change', async function() {
     const idEstrategia = this.value;
-    const selLinea = document.getElementById('selLineaAccion');
-    const selInd   = document.getElementById('selIndicador');
+    const selLinea  = document.getElementById('selLineaAccion');
+    const hidInd    = document.getElementById('hidIndicador');
+    const statusDiv = document.getElementById('indicadorStatus');
 
-    selLinea.innerHTML = '<option value="">-- Seleccione estrategia primero --</option>';
-    selInd.innerHTML   = '<option value="">-- Seleccione linea primero --</option>';
-
-    if (!idEstrategia) return;
+    hidInd.value = '';
+    statusDiv.className = 'indicador-status-display';
+    statusDiv.innerHTML = '<span style="opacity:0.5">-- Seleccione linea de accion --</span>';
 
     try {
-        const data = await apiFetch('/api/lineas-accion?id_estrategia=' + idEstrategia);
+        const url  = idEstrategia ? '/api/lineas-accion?id_estrategia=' + idEstrategia : '/api/lineas-accion';
+        const data = await apiFetch(url);
         selLinea.innerHTML = '<option value="">-- Seleccione linea de accion --</option>';
         data.data.forEach(la => {
             const opt = document.createElement('option');
             opt.value = la.ID_Linea_Accion;
+            opt.setAttribute('data-estrategia', la.ID_Estrategia);
             opt.textContent = la.Clave_Linea + ' - ' + la.Descripcion_Linea;
             selLinea.appendChild(opt);
         });
@@ -288,23 +332,15 @@ document.getElementById('selEstrategia').addEventListener('change', async functi
 });
 
 document.getElementById('selLineaAccion').addEventListener('change', async function() {
-    const idLinea = this.value;
-    const selInd  = document.getElementById('selIndicador');
-    selInd.innerHTML = '<option value="">-- Seleccione linea primero --</option>';
-    if (!idLinea) return;
-
-    try {
-        const data = await apiFetch('/api/indicadores?id_linea=' + idLinea);
-        selInd.innerHTML = '<option value="">-- Seleccione indicador --</option>';
-        data.data.forEach(ind => {
-            const opt = document.createElement('option');
-            opt.value = ind.ID_Indicador;
-            opt.textContent = ind.Codigo_Indicador + ' - ' + ind.Descripcion;
-            selInd.appendChild(opt);
-        });
-    } catch (err) {
-        console.error('Error al cargar indicadores:', err);
+    const idLinea    = this.value;
+    const claveLinea = this.selectedIndex > 0 ? this.options[this.selectedIndex].text.split(' - ')[0].trim() : '';
+    // Auto-set estrategia if not already selected
+    if (idLinea && this.selectedIndex > 0) {
+        const idEst  = this.options[this.selectedIndex].getAttribute('data-estrategia');
+        const selEst = document.getElementById('selEstrategia');
+        if (idEst && !selEst.value) selEst.value = idEst;
     }
+    await mostrarIndicadorStatus(idLinea, claveLinea, 'hidIndicador', 'indicadorStatus');
 });
 
 async function cargarODS() {
@@ -335,26 +371,33 @@ document.getElementById('formActividad').addEventListener('submit', async functi
 
     try {
         const payload = {
-            id_estrategia:  document.getElementById('selEstrategia').value,
-            orden_trabajo:  document.getElementById('txtOrdenTrabajo').value.trim(),
-            fecha:          document.getElementById('dateFecha').value,
-            id_linea_accion: document.getElementById('selLineaAccion').value,
-            numero_area:    document.getElementById('txtNumArea').value || null,
-            id_indicador:   document.getElementById('selIndicador').value || null,
-            colonia:        document.getElementById('txtColonia').value.trim(),
-            calle:          document.getElementById('txtCalle').value.trim(),
-            acciones:       document.getElementById('txtAcciones').value.trim(),
-            id_ods:         document.getElementById('selODS').value || null,
-            cantidad:       document.getElementById('txtCantidad').value || null,
-            superficie:     document.getElementById('txtSuperficie').value.trim(),
-            barrida:        document.getElementById('chkBarrida').checked,
-            metaliqueo:     document.getElementById('chkMetaliqueo').checked,
-            wireado:        document.getElementById('chkWireado').checked,
-            raspado:        document.getElementById('chkRaspado').checked,
-            jefe:           document.getElementById('txtJefe').value.trim(),
-            supervisor:     document.getElementById('txtSupervisor').value.trim(),
-            comentarios:    document.getElementById('txtComentarios').value.trim(),
-            origen_peticion: document.getElementById('selOrigenPeticion').value || null
+            id_estrategia:       document.getElementById('selEstrategia').value,
+            orden_trabajo:       document.getElementById('txtOrdenTrabajo').value.trim(),
+            fecha:               document.getElementById('dateFecha').value,
+            id_linea_accion:     document.getElementById('selLineaAccion').value,
+            numero_area:         document.getElementById('txtNumArea').value || null,
+            id_indicador:        document.getElementById('hidIndicador').value || null,
+            colonia:             document.getElementById('txtColonia').value.trim(),
+            calle:               document.getElementById('txtCalle').value.trim(),
+            acciones:            document.getElementById('txtAcciones').value.trim(),
+            id_ods:              document.getElementById('selODS').value || null,
+            superficie:          '',
+            barrida:             document.getElementById('chkBarrida').checked,
+            metaliqueo:          document.getElementById('chkMetaliqueo').checked,
+            wireado:             document.getElementById('chkWireado').checked,
+            raspado:             document.getElementById('chkRaspado').checked,
+            cantidad_barrida:    document.getElementById('txtCantidadBarrida').value    || null,
+            superficie_barrida:  document.getElementById('txtSuperficieBarrida').value.trim(),
+            cantidad_metaliqueo: document.getElementById('txtCantidadMetaliqueo').value || null,
+            superficie_metaliqueo: document.getElementById('txtSuperficieMetaliqueo').value.trim(),
+            cantidad_wireado:    document.getElementById('txtCantidadWireado').value    || null,
+            superficie_wireado:  document.getElementById('txtSuperficieWireado').value.trim(),
+            cantidad_raspado:    document.getElementById('txtCantidadRaspado').value    || null,
+            superficie_raspado:  document.getElementById('txtSuperficieRaspado').value.trim(),
+            jefe:                document.getElementById('txtJefe').value.trim(),
+            supervisor:          document.getElementById('txtSupervisor').value.trim(),
+            comentarios:         document.getElementById('txtComentarios').value.trim(),
+            origen_peticion:     document.getElementById('selOrigenPeticion').value || null
         };
 
         if (!payload.id_estrategia || !payload.fecha || !payload.id_linea_accion) {
@@ -380,37 +423,47 @@ document.getElementById('formActividad').addEventListener('submit', async functi
 
 document.getElementById('btnLimpiar').addEventListener('click', limpiarFormulario);
 
-// Mostrar/ocultar campos de medicion segun tipo de trabajo (solo uno a la vez)
+// Mostrar/ocultar seccion de medicion por tipo de trabajo
 (function() {
-    const chks = ['chkBarrida','chkMetaliqueo','chkWireado','chkRaspado'];
-    function onChange(e) {
-        if (e.target.checked) {
-            chks.forEach(id => { if (id !== e.target.id) document.getElementById(id).checked = false; });
-        }
-        const alguno = chks.some(id => document.getElementById(id).checked);
-        document.getElementById('camposMedicion').style.display = alguno ? '' : 'none';
-    }
-    chks.forEach(id => document.getElementById(id).addEventListener('change', onChange));
+    const tipos = [
+        { chk: 'chkBarrida',    sec: 'secBarrida'    },
+        { chk: 'chkMetaliqueo', sec: 'secMetaliqueo' },
+        { chk: 'chkWireado',    sec: 'secWireado'    },
+        { chk: 'chkRaspado',    sec: 'secRaspado'    }
+    ];
+    tipos.forEach(({ chk, sec }) => {
+        document.getElementById(chk).addEventListener('change', function() {
+            document.getElementById(sec).style.display = this.checked ? '' : 'none';
+        });
+    });
 })();
 
-// Mismo para modal editar (solo uno a la vez)
+// Mismo para modal editar
 (function() {
-    const chks = ['editChkBarrida','editChkMetaliqueo','editChkWireado','editChkRaspado'];
-    function onChange(e) {
-        if (e.target.checked) {
-            chks.forEach(id => { if (id !== e.target.id) document.getElementById(id).checked = false; });
-        }
-        const alguno = chks.some(id => document.getElementById(id).checked);
-        document.getElementById('editCamposMedicion').style.display = alguno ? '' : 'none';
-    }
-    chks.forEach(id => document.getElementById(id).addEventListener('change', onChange));
+    const tipos = [
+        { chk: 'editChkBarrida',    sec: 'editSecBarrida'    },
+        { chk: 'editChkMetaliqueo', sec: 'editSecMetaliqueo' },
+        { chk: 'editChkWireado',    sec: 'editSecWireado'    },
+        { chk: 'editChkRaspado',    sec: 'editSecRaspado'    }
+    ];
+    tipos.forEach(({ chk, sec }) => {
+        document.getElementById(chk).addEventListener('change', function() {
+            document.getElementById(sec).style.display = this.checked ? '' : 'none';
+        });
+    });
 })();
 
 function limpiarFormulario() {
     document.getElementById('formActividad').reset();
-    document.getElementById('selLineaAccion').innerHTML = '<option value="">-- Seleccione estrategia primero --</option>';
-    document.getElementById('selIndicador').innerHTML   = '<option value="">-- Seleccione linea primero --</option>';
-    document.getElementById('camposMedicion').style.display = 'none';
+    document.getElementById('hidIndicador').value = '';
+    const statusDiv = document.getElementById('indicadorStatus');
+    statusDiv.className = 'indicador-status-display';
+    statusDiv.innerHTML = '<span style="opacity:0.5">-- Seleccione linea de accion --</span>';
+    ['secBarrida','secMetaliqueo','secWireado','secRaspado'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
+    // Recargar todas las lineas
+    cargarTodasLineas();
     setDefaultDate();
 }
 
@@ -555,10 +608,13 @@ async function cargarODSEdit() {
 
 document.getElementById('editSelEstrategia').addEventListener('change', async function() {
     const idEstrategia = this.value;
-    const selLinea = document.getElementById('editSelLineaAccion');
-    const selInd   = document.getElementById('editSelIndicador');
+    const selLinea  = document.getElementById('editSelLineaAccion');
+    const hidInd    = document.getElementById('editHidIndicador');
+    const statusDiv = document.getElementById('editIndicadorStatus');
+    hidInd.value = '';
+    statusDiv.className = 'indicador-status-display';
+    statusDiv.innerHTML = '<span style="opacity:0.5">-- Seleccione linea de accion --</span>';
     selLinea.innerHTML = '<option value="">-- Seleccione estrategia primero --</option>';
-    selInd.innerHTML   = '<option value="">-- Seleccione linea primero --</option>';
     if (!idEstrategia) return;
     try {
         const data = await apiFetch('/api/lineas-accion?id_estrategia=' + idEstrategia);
@@ -575,22 +631,9 @@ document.getElementById('editSelEstrategia').addEventListener('change', async fu
 });
 
 document.getElementById('editSelLineaAccion').addEventListener('change', async function() {
-    const idLinea = this.value;
-    const selInd  = document.getElementById('editSelIndicador');
-    selInd.innerHTML = '<option value="">-- Seleccione linea primero --</option>';
-    if (!idLinea) return;
-    try {
-        const data = await apiFetch('/api/indicadores?id_linea=' + idLinea);
-        selInd.innerHTML = '<option value="">-- Seleccione indicador --</option>';
-        data.data.forEach(ind => {
-            const opt = document.createElement('option');
-            opt.value = ind.ID_Indicador;
-            opt.textContent = ind.Codigo_Indicador + ' - ' + ind.Descripcion;
-            selInd.appendChild(opt);
-        });
-    } catch (err) {
-        console.error('Error al cargar indicadores en modal:', err);
-    }
+    const idLinea    = this.value;
+    const claveLinea = this.selectedIndex > 0 ? this.options[this.selectedIndex].text.split(' - ')[0].trim() : '';
+    await mostrarIndicadorStatus(idLinea, claveLinea, 'editHidIndicador', 'editIndicadorStatus');
 });
 
 async function abrirModalEditar(id) {
@@ -605,53 +648,59 @@ async function abrirModalEditar(id) {
         document.getElementById('editTxtColonia').value       = a.Colonia       || '';
         document.getElementById('editTxtCalle').value         = a.Calle         || '';
         document.getElementById('editTxtAcciones').value      = a.Acciones      || '';
-        document.getElementById('editTxtCantidad').value      = a.Cantidad      != null ? a.Cantidad : '';
-        document.getElementById('editTxtSuperficie').value    = a.Superficie    || '';
         document.getElementById('editChkBarrida').checked     = !!a.Barrida;
         document.getElementById('editChkMetaliqueo').checked  = !!a.Metaliqueo;
         document.getElementById('editChkWireado').checked     = !!a.Wireado;
         document.getElementById('editChkRaspado').checked     = !!a.Raspado;
+        document.getElementById('editTxtCantidadBarrida').value    = a.Cantidad_Barrida    != null ? a.Cantidad_Barrida    : '';
+        document.getElementById('editTxtSuperficieBarrida').value  = a.Superficie_Barrida  || '';
+        document.getElementById('editTxtCantidadMetaliqueo').value = a.Cantidad_Metaliqueo != null ? a.Cantidad_Metaliqueo : '';
+        document.getElementById('editTxtSuperficieMetaliqueo').value = a.Superficie_Metaliqueo || '';
+        document.getElementById('editTxtCantidadWireado').value    = a.Cantidad_Wireado    != null ? a.Cantidad_Wireado    : '';
+        document.getElementById('editTxtSuperficieWireado').value  = a.Superficie_Wireado  || '';
+        document.getElementById('editTxtCantidadRaspado').value    = a.Cantidad_Raspado    != null ? a.Cantidad_Raspado    : '';
+        document.getElementById('editTxtSuperficieRaspado').value  = a.Superficie_Raspado  || '';
         document.getElementById('editTxtJefe').value          = a.Jefe          || '';
         document.getElementById('editTxtSupervisor').value    = a.Supervisor    || '';
         document.getElementById('editTxtComentarios').value   = a.Comentarios   || '';
 
-        // Cascade: estrategia -> lineas -> indicadores
+        // Mostrar secciones de medicion segun tipo
+        document.getElementById('editSecBarrida').style.display    = a.Barrida    ? '' : 'none';
+        document.getElementById('editSecMetaliqueo').style.display = a.Metaliqueo ? '' : 'none';
+        document.getElementById('editSecWireado').style.display    = a.Wireado    ? '' : 'none';
+        document.getElementById('editSecRaspado').style.display    = a.Raspado    ? '' : 'none';
+
         const selEst   = document.getElementById('editSelEstrategia');
         const selLinea = document.getElementById('editSelLineaAccion');
-        const selInd   = document.getElementById('editSelIndicador');
+        const hidInd   = document.getElementById('editHidIndicador');
 
         selEst.value = a.ID_Estrategia || '';
         selLinea.innerHTML = '<option value="">-- Seleccione linea de accion --</option>';
-        selInd.innerHTML   = '<option value="">-- Seleccione indicador --</option>';
+        hidInd.value = '';
+        const editStatus = document.getElementById('editIndicadorStatus');
+        editStatus.className = 'indicador-status-display';
+        editStatus.innerHTML = '<span style="opacity:0.5">--</span>';
 
         if (a.ID_Estrategia) {
             const lineasData = await apiFetch('/api/lineas-accion?id_estrategia=' + a.ID_Estrategia);
             lineasData.data.forEach(la => {
                 const opt = document.createElement('option');
                 opt.value = la.ID_Linea_Accion;
+                opt.setAttribute('data-estrategia', la.ID_Estrategia);
                 opt.textContent = la.Clave_Linea + ' - ' + la.Descripcion_Linea;
                 selLinea.appendChild(opt);
             });
             selLinea.value = a.ID_Linea_Accion || '';
 
             if (a.ID_Linea_Accion) {
-                const indData = await apiFetch('/api/indicadores?id_linea=' + a.ID_Linea_Accion);
-                indData.data.forEach(ind => {
-                    const opt = document.createElement('option');
-                    opt.value = ind.ID_Indicador;
-                    opt.textContent = ind.Codigo_Indicador + ' - ' + ind.Descripcion;
-                    selInd.appendChild(opt);
-                });
-                selInd.value = a.ID_Indicador || '';
+                const selectedOpt = selLinea.options[selLinea.selectedIndex];
+                const claveLinea  = selectedOpt ? selectedOpt.text.split(' - ')[0].trim() : '';
+                await mostrarIndicadorStatus(a.ID_Linea_Accion, claveLinea, 'editHidIndicador', 'editIndicadorStatus');
             }
         }
 
         document.getElementById('editSelODS').value = a.ID_ODS || '';
         document.getElementById('editSelOrigenPeticion').value = a.Origen_Peticion || '';
-
-        // Mostrar campos de medicion si hay trabajo seleccionado
-        const tieneTrabajo = !!(a.Barrida || a.Metaliqueo || a.Wireado || a.Raspado);
-        document.getElementById('editCamposMedicion').style.display = tieneTrabajo ? '' : 'none';
 
         document.getElementById('alertEditar').style.display = 'none';
         document.getElementById('modalEditar').style.display = 'flex';
@@ -678,26 +727,33 @@ document.getElementById('formEditar').addEventListener('submit', async function(
     try {
         const id = document.getElementById('editIdActividad').value;
         const payload = {
-            id_estrategia:   document.getElementById('editSelEstrategia').value,
-            orden_trabajo:   document.getElementById('editTxtOrdenTrabajo').value.trim(),
-            fecha:           document.getElementById('editDateFecha').value,
-            id_linea_accion: document.getElementById('editSelLineaAccion').value,
-            numero_area:     document.getElementById('editTxtNumArea').value     || null,
-            id_indicador:    document.getElementById('editSelIndicador').value   || null,
-            colonia:         document.getElementById('editTxtColonia').value.trim(),
-            calle:           document.getElementById('editTxtCalle').value.trim(),
-            acciones:        document.getElementById('editTxtAcciones').value.trim(),
-            id_ods:          document.getElementById('editSelODS').value         || null,
-            cantidad:        document.getElementById('editTxtCantidad').value    || null,
-            superficie:      document.getElementById('editTxtSuperficie').value.trim(),
-            barrida:         document.getElementById('editChkBarrida').checked,
-            metaliqueo:      document.getElementById('editChkMetaliqueo').checked,
-            wireado:         document.getElementById('editChkWireado').checked,
-            raspado:         document.getElementById('editChkRaspado').checked,
-            jefe:            document.getElementById('editTxtJefe').value.trim(),
-            supervisor:      document.getElementById('editTxtSupervisor').value.trim(),
-            comentarios:     document.getElementById('editTxtComentarios').value.trim(),
-            origen_peticion: document.getElementById('editSelOrigenPeticion').value || null
+            id_estrategia:         document.getElementById('editSelEstrategia').value,
+            orden_trabajo:         document.getElementById('editTxtOrdenTrabajo').value.trim(),
+            fecha:                 document.getElementById('editDateFecha').value,
+            id_linea_accion:       document.getElementById('editSelLineaAccion').value,
+            numero_area:           document.getElementById('editTxtNumArea').value     || null,
+            id_indicador:          document.getElementById('editHidIndicador').value   || null,
+            colonia:               document.getElementById('editTxtColonia').value.trim(),
+            calle:                 document.getElementById('editTxtCalle').value.trim(),
+            acciones:              document.getElementById('editTxtAcciones').value.trim(),
+            id_ods:                document.getElementById('editSelODS').value         || null,
+            superficie:            '',
+            barrida:               document.getElementById('editChkBarrida').checked,
+            metaliqueo:            document.getElementById('editChkMetaliqueo').checked,
+            wireado:               document.getElementById('editChkWireado').checked,
+            raspado:               document.getElementById('editChkRaspado').checked,
+            cantidad_barrida:      document.getElementById('editTxtCantidadBarrida').value    || null,
+            superficie_barrida:    document.getElementById('editTxtSuperficieBarrida').value.trim(),
+            cantidad_metaliqueo:   document.getElementById('editTxtCantidadMetaliqueo').value || null,
+            superficie_metaliqueo: document.getElementById('editTxtSuperficieMetaliqueo').value.trim(),
+            cantidad_wireado:      document.getElementById('editTxtCantidadWireado').value    || null,
+            superficie_wireado:    document.getElementById('editTxtSuperficieWireado').value.trim(),
+            cantidad_raspado:      document.getElementById('editTxtCantidadRaspado').value    || null,
+            superficie_raspado:    document.getElementById('editTxtSuperficieRaspado').value.trim(),
+            jefe:                  document.getElementById('editTxtJefe').value.trim(),
+            supervisor:            document.getElementById('editTxtSupervisor').value.trim(),
+            comentarios:           document.getElementById('editTxtComentarios').value.trim(),
+            origen_peticion:       document.getElementById('editSelOrigenPeticion').value || null
         };
 
         if (!payload.id_estrategia || !payload.fecha || !payload.id_linea_accion) {
