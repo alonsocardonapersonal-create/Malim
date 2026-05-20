@@ -440,6 +440,41 @@ app.get('/api/dashboard', async (req, res) => {
 // PMD
 // =====================================================
 
+app.post('/api/pmd', async (req, res) => {
+    try {
+        const b = req.body;
+        if (!b.linea_accion || !b.programa || !b.estrategia || !b.descripcion_linea_accion) {
+            return res.status(400).json({ error: 'Campos obligatorios: Linea de Accion, Programa, Estrategia, Descripcion' });
+        }
+        const n = (v) => (v != null && v !== '' ? parseFloat(v) : null);
+        await pool.query(
+            `INSERT INTO "PMD" (
+                "Linea_Accion","Pilar","Programa","Estrategia","Descripcion_Linea_Accion",
+                "Meta_Trianual","Meta_Anual","Unidad_Medida","Indicador","Descripcion_Indicador",
+                "Alineacion_Plan_Nacional","Alineacion_Plan_Estatal","Institucion_Responsable",
+                "Meta_Oct","Meta_Nov","Meta_Dic","Meta_Ene","Meta_Feb","Meta_Mar",
+                "Meta_Abr","Meta_May","Meta_Jun","Meta_Jul","Meta_Ago","Meta_Sep"
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
+            [
+                b.linea_accion.trim(), b.pilar || null, b.programa || null, b.estrategia || null,
+                b.descripcion_linea_accion || null,
+                n(b.meta_trianual), n(b.meta_anual),
+                b.unidad_medida || null, b.indicador || null, b.descripcion_indicador || null,
+                b.alineacion_plan_nacional || null, b.alineacion_plan_estatal || null,
+                b.institucion_responsable  || null,
+                n(b.meta_oct), n(b.meta_nov), n(b.meta_dic), n(b.meta_ene),
+                n(b.meta_feb), n(b.meta_mar), n(b.meta_abr), n(b.meta_may),
+                n(b.meta_jun), n(b.meta_jul), n(b.meta_ago), n(b.meta_sep)
+            ]
+        );
+        res.status(201).json({ success: true, message: 'Linea PMD creada exitosamente' });
+    } catch (err) {
+        console.error('Error en POST /api/pmd:', err);
+        const msg = err.code === '23505' ? 'La Linea de Accion ya existe' : err.message;
+        res.status(500).json({ error: 'Error al crear PMD', details: msg });
+    }
+});
+
 app.get('/api/pmd', async (req, res) => {
     try {
         const result = await pool.query(
@@ -500,6 +535,19 @@ app.put('/api/pmd/:linea', async (req, res) => {
     } catch (err) {
         console.error('Error en PUT /api/pmd:', err);
         res.status(500).json({ error: 'Error al actualizar PMD', details: err.message });
+    }
+});
+
+app.delete('/api/pmd/:linea', async (req, res) => {
+    try {
+        const linea  = req.params.linea;
+        const result = await pool.query('DELETE FROM "PMD" WHERE "Linea_Accion" = $1', [linea]);
+        if (result.rowCount === 0) return res.status(404).json({ error: 'Linea de accion no encontrada' });
+        res.json({ success: true, message: 'Linea PMD eliminada exitosamente' });
+    } catch (err) {
+        console.error('Error en DELETE /api/pmd:', err);
+        const msg = err.code === '23503' ? 'No se puede eliminar: tiene registros POA asociados' : err.message;
+        res.status(500).json({ error: 'Error al eliminar PMD', details: msg });
     }
 });
 

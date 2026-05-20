@@ -855,7 +855,10 @@ async function cargarAdminPMD() {
                 '<td>' + esc(r.Indicador) + '</td>' +
                 '<td>' + esc(r.Alineacion_Plan_Nacional) + '</td>' +
                 '<td>' + esc(r.Alineacion_Plan_Estatal) + '</td>' +
-                '<td class="td-acciones"><button class="btn-sm btn-edit" onclick="abrirModalPMD(\'' + esc(r.Linea_Accion) + '\')">Editar</button></td>';
+                '<td class="td-acciones">' +
+                    '<button class="btn-sm btn-edit" onclick="abrirModalPMD(\'' + esc(r.Linea_Accion) + '\')">Editar</button> ' +
+                    '<button class="btn-sm btn-delete" onclick="eliminarPMD(\'' + esc(r.Linea_Accion) + '\')">Eliminar</button>' +
+                '</td>';
             tbody.appendChild(tr);
         });
     } catch (err) {
@@ -863,12 +866,31 @@ async function cargarAdminPMD() {
     }
 }
 
+function abrirModalNuevoPMD() {
+    document.getElementById('formPMD').reset();
+    document.getElementById('pmdModo').value    = 'crear';
+    document.getElementById('pmdLinea').value   = '';
+    document.getElementById('pmdLinea').readOnly = false;
+    document.getElementById('pmdLinea').classList.remove('field-input--disabled');
+    document.getElementById('modalPMDTitulo').textContent = 'Nueva Linea PMD';
+    document.getElementById('btnGuardarPMD').textContent  = 'Crear Linea';
+    document.getElementById('alertPMDModal').style.display = 'none';
+    document.getElementById('modalPMD').style.display = 'flex';
+}
+
 async function abrirModalPMD(linea) {
     try {
         const data = await apiFetch('/api/pmd/' + encodeURIComponent(linea));
         const r    = data.data;
-        document.getElementById('pmdLinea').value              = r.Linea_Accion;
-        document.getElementById('modalPMDLinea').textContent   = r.Linea_Accion;
+        document.getElementById('pmdModo').value    = 'editar';
+        document.getElementById('pmdLinea').value   = r.Linea_Accion;
+        document.getElementById('pmdLinea').readOnly = true;
+        document.getElementById('pmdLinea').classList.add('field-input--disabled');
+        document.getElementById('modalPMDTitulo').textContent = 'Editar Linea PMD: ' + r.Linea_Accion;
+        document.getElementById('btnGuardarPMD').textContent  = 'Guardar Cambios';
+        document.getElementById('pmdPilar').value          = r.Pilar      || '';
+        document.getElementById('pmdPrograma').value       = r.Programa   || '';
+        document.getElementById('pmdEstrategia').value     = r.Estrategia || '';
         document.getElementById('pmdDescripcion').value        = r.Descripcion_Linea_Accion || '';
         document.getElementById('pmdMetaTrianual').value       = r.Meta_Trianual != null ? r.Meta_Trianual : '';
         document.getElementById('pmdMetaAnual').value          = r.Meta_Anual    != null ? r.Meta_Anual    : '';
@@ -897,6 +919,23 @@ function cerrarModalPMD() {
 document.getElementById('btnCerrarPMD').addEventListener('click', cerrarModalPMD);
 document.getElementById('btnCancelarPMD').addEventListener('click', cerrarModalPMD);
 document.getElementById('modalPMD').addEventListener('click', function(e) { if (e.target === this) cerrarModalPMD(); });
+document.getElementById('btnNuevoPMD').addEventListener('click', abrirModalNuevoPMD);
+
+async function eliminarPMD(linea) {
+    showConfirm(
+        'Confirmar eliminacion',
+        '¿Eliminar la linea de accion "' + linea + '" del PMD? Esta accion no se puede deshacer.',
+        async () => {
+            try {
+                await apiFetch('/api/pmd/' + encodeURIComponent(linea), { method: 'DELETE' });
+                showAlert('alertPMD', 'Linea PMD eliminada exitosamente.', 'success');
+                cargarAdminPMD();
+            } catch (err) {
+                showAlert('alertPMD', 'Error al eliminar: ' + err.message, 'error');
+            }
+        }
+    );
+}
 
 document.getElementById('formPMD').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -904,7 +943,8 @@ document.getElementById('formPMD').addEventListener('submit', async function(e) 
     btn.disabled = true;
     btn.textContent = 'Guardando...';
     try {
-        const linea = document.getElementById('pmdLinea').value;
+        const linea = document.getElementById('pmdLinea').value.trim();
+        const modo  = document.getElementById('pmdModo').value;
         const meses = ['Oct','Nov','Dic','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'];
         const mesPayload = {};
         meses.forEach(m => {
@@ -912,6 +952,10 @@ document.getElementById('formPMD').addEventListener('submit', async function(e) 
             mesPayload['meta_' + m.toLowerCase()] = val !== '' ? val : null;
         });
         const payload = {
+            linea_accion:              linea,
+            pilar:                     document.getElementById('pmdPilar').value.trim(),
+            programa:                  document.getElementById('pmdPrograma').value.trim(),
+            estrategia:                document.getElementById('pmdEstrategia').value.trim(),
             descripcion_linea_accion:  document.getElementById('pmdDescripcion').value.trim(),
             meta_trianual:             document.getElementById('pmdMetaTrianual').value || null,
             meta_anual:                document.getElementById('pmdMetaAnual').value    || null,
@@ -923,13 +967,23 @@ document.getElementById('formPMD').addEventListener('submit', async function(e) 
             institucion_responsable:   document.getElementById('pmdInstitucion').value.trim(),
             ...mesPayload
         };
-        await apiFetch('/api/pmd/' + encodeURIComponent(linea), {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        cerrarModalPMD();
-        showAlert('alertPMD', 'PMD actualizado exitosamente.', 'success');
+        if (modo === 'crear') {
+            await apiFetch('/api/pmd', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            cerrarModalPMD();
+            showAlert('alertPMD', 'Linea PMD creada exitosamente.', 'success');
+        } else {
+            await apiFetch('/api/pmd/' + encodeURIComponent(linea), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            cerrarModalPMD();
+            showAlert('alertPMD', 'PMD actualizado exitosamente.', 'success');
+        }
         cargarAdminPMD();
     } catch (err) {
         showAlert('alertPMDModal', 'Error al guardar: ' + err.message, 'error');

@@ -328,6 +328,7 @@ select.field-input { cursor: pointer; }
 .btn-edit:hover   { opacity: 0.85; }
 .btn-delete { background: #ef4444; color: #fff; }
 .btn-delete:hover { opacity: 0.85; }
+.field-input--disabled { background: var(--surface-alt, #f1f5f9); color: var(--text-muted); cursor: not-allowed; }
 .td-acciones { white-space: nowrap; }
 
 /* ============================================================

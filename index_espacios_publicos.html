@@ -346,6 +346,9 @@
 
             <!-- Sub-panel PMD -->
             <div id="subtab-pmd" class="sub-panel active">
+                <div class="dash-controls">
+                    <button class="btn btn-primary" id="btnNuevoPMD">+ Nueva Linea PMD</button>
+                </div>
                 <div id="alertPMD" class="alert" style="display:none;"></div>
                 <div class="table-wrapper">
                     <table class="data-table" id="tablaPMD">
@@ -406,18 +409,36 @@
         <p>Sistema de Gestion de Actividades &mdash; Departamento de Espacios Publicos &mdash; Ayuntamiento de Matamoros, Tamaulipas &mdash; 2026</p>
     </footer>
 
-    <!-- Modal Edicion PMD -->
+    <!-- Modal Edicion / Creacion PMD -->
     <div id="modalPMD" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 class="modal-title">Editar Linea de Accion PMD: <span id="modalPMDLinea"></span></h3>
+                <h3 class="modal-title" id="modalPMDTitulo">Linea PMD</h3>
                 <button class="modal-close" id="btnCerrarPMD" type="button">&#215;</button>
             </div>
             <div class="modal-body">
                 <div id="alertPMDModal" class="alert" style="display:none;"></div>
                 <form id="formPMD" novalidate>
-                    <input type="hidden" id="pmdLinea">
-                    <p class="modal-section-title">Informacion General</p>
+                    <input type="hidden" id="pmdModo" value="editar">
+                    <p class="modal-section-title">Identificacion</p>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label" for="pmdLinea">Clave Linea de Accion <span class="req">*</span></label>
+                            <input class="field-input" type="text" id="pmdLinea" placeholder="Ej: 3.8.1.1" maxlength="20">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdPilar">Pilar</label>
+                            <input class="field-input" type="text" id="pmdPilar" placeholder="Ej: Pilar 3">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdPrograma">Programa <span class="req">*</span></label>
+                            <input class="field-input" type="text" id="pmdPrograma" placeholder="Ej: 3.8">
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label" for="pmdEstrategia">Estrategia <span class="req">*</span></label>
+                            <input class="field-input" type="text" id="pmdEstrategia" placeholder="Ej: 3.8.1">
+                        </div>
+                    </div>
                     <div class="form-row">
                         <div class="form-field form-field--full">
                             <label class="field-label" for="pmdDescripcion">Descripcion de la Linea de Accion</label>
