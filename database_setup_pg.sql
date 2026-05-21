@@ -165,6 +165,24 @@ CREATE TABLE "Detalle_Actividades_POA" (
     "Gasto_Programado"     DECIMAL(15,2) NOT NULL DEFAULT 0
 );
 
+CREATE TABLE "Avisos" (
+    "ID_Aviso"        SERIAL PRIMARY KEY,
+    "Remitente"       VARCHAR(100) NOT NULL,
+    "Destinatarios"   TEXT         NOT NULL,  -- JSON array de usuarios
+    "Mensaje"         TEXT         NOT NULL,
+    "Importancia"     VARCHAR(10)  NOT NULL DEFAULT 'amarillo' CHECK ("Importancia" IN ('verde','amarillo','rojo')),
+    "Completado"      BOOLEAN      NOT NULL DEFAULT FALSE,
+    "Fecha_Creacion"  TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE "Respuestas_Avisos" (
+    "ID_Respuesta"   SERIAL PRIMARY KEY,
+    "ID_Aviso"       INT          NOT NULL REFERENCES "Avisos"("ID_Aviso") ON DELETE CASCADE,
+    "Autor"          VARCHAR(100) NOT NULL,
+    "Mensaje"        TEXT         NOT NULL,
+    "Fecha"          TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
 -- ============================================================
 -- VISTA Dashboard
 -- ============================================================

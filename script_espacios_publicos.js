@@ -93,12 +93,19 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             body: JSON.stringify({ usuario, contrasena })
         });
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('headerUserName').textContent = data.usuario.Nombre;
-        setHeaderDate();
-        setDefaultDate();
-        cargarCatalogos();
+        // Animacion sutil de login exitoso
+        const card = document.querySelector('.login-card');
+        card.classList.add('login-success');
+        setTimeout(() => {
+            card.classList.remove('login-success');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('headerUserName').textContent = data.usuario.Nombre;
+            setHeaderDate();
+            setDefaultDate();
+            cargarCatalogos();
+            verificarAvisosPendientes();
+        }, 500);
     } catch (err) {
         errEl.textContent = err.message;
         errEl.style.display = 'block';
@@ -129,7 +136,22 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         if (tab === 'dashboard') cargarDashboard();
         if (tab === 'consultas') cargarConsultas();
         if (tab === 'admin')     cargarAdminPMD();
+        if (tab === 'avisos')    cargarAvisos();
     });
+});
+
+// Toggle mostrar/ocultar contrasena en login
+document.getElementById('btnTogglePw').addEventListener('click', function() {
+    const inp = document.getElementById('inputContrasena');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        this.title = 'Ocultar contrasena';
+        this.textContent = '\uD83D\uDE48'; // monky eye
+    } else {
+        inp.type = 'password';
+        this.title = 'Ver contrasena';
+        this.innerHTML = '&#128065;';
+    }
 });
 
 // Sub-tab navigation for admin panel
@@ -1175,3 +1197,268 @@ async function eliminarPOA(id) {
         }
     );
 }
+
+// =====================================================
+// BUSQUEDA / FILTRO EN TABLAS
+// =====================================================
+
+function filtrarTabla(searchId, tbodyId) {
+    const input = document.getElementById(searchId);
+    if (!input) return;
+    input.addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        const rows = document.getElementById(tbodyId).querySelectorAll('tr');
+        rows.forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+}
+
+filtrarTabla('searchDashboard',  'dashBody');
+filtrarTabla('searchConsultas',  'consultasBody');
+filtrarTabla('searchPMD',        'pmdBody');
+filtrarTabla('searchPOA',        'poaBody');
+
+// =====================================================
+// EXPORTAR A EXCEL / PDF
+// =====================================================
+
+function exportarExcel(tablaId, nombre) {
+    const tabla = document.getElementById(tablaId);
+    if (!tabla) return;
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(tabla);
+    XLSX.utils.book_append_sheet(wb, ws, nombre);
+    XLSX.writeFile(wb, nombre + '.xlsx');
+}
+
+function exportarPDF(tablaId, nombre) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(13);
+    doc.text(nombre, 14, 15);
+    doc.autoTable({ html: '#' + tablaId, startY: 22, styles: { fontSize: 7 } });
+    doc.save(nombre + '.pdf');
+}
+
+document.getElementById('btnExportDashXLS').addEventListener('click', () => exportarExcel('tablaDashboard',  'Indicadores_PMD'));
+document.getElementById('btnExportDashPDF').addEventListener('click', () => exportarPDF('tablaDashboard',   'Indicadores_PMD'));
+document.getElementById('btnExportConsultasXLS').addEventListener('click', () => exportarExcel('tablaConsultas', 'Consulta_Actividades'));
+document.getElementById('btnExportConsultasPDF').addEventListener('click', () => exportarPDF('tablaConsultas',  'Consulta_Actividades'));
+document.getElementById('btnExportPMDXLS').addEventListener('click', () => exportarExcel('tablaPMD', 'PMD'));
+document.getElementById('btnExportPMDPDF').addEventListener('click', () => exportarPDF('tablaPMD',  'PMD'));
+document.getElementById('btnExportPOAXLS').addEventListener('click', () => exportarExcel('tablaPOA', 'POA'));
+document.getElementById('btnExportPOAPDF').addEventListener('click', () => exportarPDF('tablaPOA',  'POA'));
+
+// =====================================================
+// AVISOS
+// =====================================================
+
+let _avisoActualId = null;
+
+function getUsuarioActual() {
+    const u = sessionStorage.getItem('usuario');
+    return u ? JSON.parse(u) : null;
+}
+
+// Verificar avisos pendientes al entrar y mostrar flotante
+async function verificarAvisosPendientes() {
+    const u = getUsuarioActual();
+    if (!u) return;
+    try {
+        const data = await apiFetch('/api/avisos/pendientes?usuario=' + encodeURIComponent(u.Usuario));
+        if (data.pendientes > 0) {
+            document.getElementById('floatingAviso').style.display = 'flex';
+        }
+    } catch (e) { /* silencioso */ }
+}
+
+document.getElementById('btnFloatVerAviso').addEventListener('click', () => {
+    document.getElementById('floatingAviso').style.display = 'none';
+    // Navegar al tab de avisos
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="avisos"]').classList.add('active');
+    document.getElementById('tab-avisos').classList.add('active');
+    cargarAvisos();
+});
+document.getElementById('btnFloatCerrar').addEventListener('click', () => {
+    document.getElementById('floatingAviso').style.display = 'none';
+});
+
+// Cargar tabla de avisos
+async function cargarAvisos() {
+    const u = getUsuarioActual();
+    if (!u) return;
+    const tbody = document.getElementById('avisosBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Cargando...</td></tr>';
+    try {
+        const data = await apiFetch('/api/avisos?usuario=' + encodeURIComponent(u.Usuario));
+        const avisos = data.data;
+        if (!avisos.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="td-empty">No hay avisos</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        avisos.forEach(a => {
+            const dests = Array.isArray(a.Destinatarios)
+                ? a.Destinatarios.join(', ')
+                : JSON.parse(a.Destinatarios || '[]').join(', ');
+            const estadoBadge = a.Completado
+                ? '<span class="badge badge-verde">Completado</span>'
+                : '<span class="badge badge-amarillo">Pendiente</span>';
+            const imp = { verde: 'badge-verde', amarillo: 'badge-amarillo', rojo: 'badge-rojo' }[a.Importancia] || 'badge-amarillo';
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td><span class="badge ' + imp + '">' + esc(a.Importancia) + '</span></td>' +
+                '<td>' + esc(a.Remitente) + '</td>' +
+                '<td>' + esc(dests) + '</td>' +
+                '<td class="td-desc">' + esc(a.Mensaje) + '</td>' +
+                '<td>' + estadoBadge + '</td>' +
+                '<td>' + (a.Fecha_Creacion ? a.Fecha_Creacion.substring(0, 10) : '') + '</td>' +
+                '<td class="td-acciones"><button class="btn-sm btn-edit" onclick="abrirVerAviso(' + a.ID_Aviso + ')">Ver</button></td>';
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Error: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+// Modal ver aviso
+async function abrirVerAviso(id) {
+    _avisoActualId = id;
+    const u = getUsuarioActual();
+    try {
+        const data = await apiFetch('/api/avisos?usuario=' + encodeURIComponent(u.Usuario));
+        const a = data.data.find(x => x.ID_Aviso === id);
+        if (!a) return;
+        const imp = { verde: 'badge-verde', amarillo: 'badge-amarillo', rojo: 'badge-rojo' }[a.Importancia] || 'badge-amarillo';
+        const dests = Array.isArray(a.Destinatarios)
+            ? a.Destinatarios.join(', ')
+            : JSON.parse(a.Destinatarios || '[]').join(', ');
+        document.getElementById('modalVerAvisoTitulo').innerHTML =
+            'Aviso <span class="badge ' + imp + '">' + a.Importancia + '</span>';
+        document.getElementById('avisoDetalle').innerHTML =
+            '<p><strong>De:</strong> ' + esc(a.Remitente) + '</p>' +
+            '<p><strong>Para:</strong> ' + esc(dests) + '</p>' +
+            '<p><strong>Fecha:</strong> ' + (a.Fecha_Creacion ? a.Fecha_Creacion.substring(0, 10) : '') + '</p>' +
+            '<p class="aviso-mensaje">' + esc(a.Mensaje) + '</p>';
+        // Respuestas
+        const respDiv = document.getElementById('avisoRespuestas');
+        if (a.respuestas && a.respuestas.length) {
+            respDiv.innerHTML = '<p class="resp-titulo">Respuestas:</p>' +
+                a.respuestas.map(r =>
+                    '<div class="resp-item"><strong>' + esc(r.Autor) + '</strong> <span class="resp-fecha">' +
+                    r.Fecha.substring(0, 10) + '</span><p>' + esc(r.Mensaje) + '</p></div>'
+                ).join('');
+        } else {
+            respDiv.innerHTML = '';
+        }
+        document.getElementById('btnCompletarAviso').style.display = a.Completado ? 'none' : 'inline-block';
+        document.getElementById('avisoPanelRespuesta').style.display = 'none';
+        document.getElementById('avisoRespuestaTxt').value = '';
+        document.getElementById('modalVerAviso').style.display = 'flex';
+    } catch (err) { alert('Error: ' + err.message); }
+}
+
+document.getElementById('btnCerrarVerAviso').addEventListener('click', () => {
+    document.getElementById('modalVerAviso').style.display = 'none';
+});
+document.getElementById('modalVerAviso').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+
+document.getElementById('btnCompletarAviso').addEventListener('click', async () => {
+    if (!_avisoActualId) return;
+    try {
+        await apiFetch('/api/avisos/' + _avisoActualId + '/completado', { method: 'PUT' });
+        document.getElementById('modalVerAviso').style.display = 'none';
+        showAlert('alertAvisos', 'Aviso marcado como completado.', 'success');
+        cargarAvisos();
+    } catch (err) { alert('Error: ' + err.message); }
+});
+
+document.getElementById('btnToggleRespuesta').addEventListener('click', () => {
+    const panel = document.getElementById('avisoPanelRespuesta');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('btnEnviarRespuesta').addEventListener('click', async () => {
+    const u = getUsuarioActual();
+    const msg = document.getElementById('avisoRespuestaTxt').value.trim();
+    if (!msg) return;
+    try {
+        await apiFetch('/api/avisos/' + _avisoActualId + '/respuesta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ autor: u.Usuario, mensaje: msg })
+        });
+        await abrirVerAviso(_avisoActualId);
+    } catch (err) { alert('Error: ' + err.message); }
+});
+
+// Modal nuevo aviso
+document.getElementById('btnNuevoAviso').addEventListener('click', async () => {
+    const u = getUsuarioActual();
+    document.getElementById('formNuevoAviso').reset();
+    document.getElementById('alertNuevoAviso').style.display = 'none';
+    // Cargar lista de usuarios
+    try {
+        const data = await apiFetch('/api/usuarios/lista');
+        const grid = document.getElementById('destinatariosCheck');
+        grid.innerHTML = '';
+        data.data.forEach(usr => {
+            if (usr.Usuario === u.Usuario) return; // no enviarte a ti mismo
+            const lbl = document.createElement('label');
+            lbl.className = 'dest-check';
+            lbl.innerHTML = '<input type="checkbox" value="' + esc(usr.Usuario) + '"> ' + esc(usr.Nombre);
+            grid.appendChild(lbl);
+        });
+    } catch (e) { /* ignore */ }
+    document.getElementById('modalNuevoAviso').style.display = 'flex';
+});
+
+document.getElementById('btnCerrarNuevoAviso').addEventListener('click', () => {
+    document.getElementById('modalNuevoAviso').style.display = 'none';
+});
+document.getElementById('btnCancelarNuevoAviso').addEventListener('click', () => {
+    document.getElementById('modalNuevoAviso').style.display = 'none';
+});
+document.getElementById('modalNuevoAviso').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+
+document.getElementById('formNuevoAviso').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const u = getUsuarioActual();
+    const btn = document.getElementById('btnEnviarAviso');
+    btn.disabled = true;
+    try {
+        const dests = Array.from(
+            document.getElementById('destinatariosCheck').querySelectorAll('input:checked')
+        ).map(c => c.value);
+        if (!dests.length) {
+            showAlert('alertNuevoAviso', 'Selecciona al menos un destinatario.', 'error');
+            return;
+        }
+        const mensaje = document.getElementById('avisoMensaje').value.trim();
+        if (!mensaje) { showAlert('alertNuevoAviso', 'El mensaje no puede estar vacio.', 'error'); return; }
+        await apiFetch('/api/avisos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                remitente:    u.Usuario,
+                destinatarios: dests,
+                mensaje,
+                importancia: document.getElementById('avisoImportancia').value
+            })
+        });
+        document.getElementById('modalNuevoAviso').style.display = 'none';
+        showAlert('alertAvisos', 'Aviso enviado exitosamente.', 'success');
+        cargarAvisos();
+    } catch (err) {
+        showAlert('alertNuevoAviso', 'Error: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});

@@ -683,6 +683,106 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Error interno del servidor', details: err.message });
 });
 
+// =====================================================
+// AVISOS
+// =====================================================
+
+// GET todos los avisos donde el usuario es remitente o destinatario
+app.get('/api/avisos', async (req, res) => {
+    try {
+        const usuario = req.query.usuario;
+        if (!usuario) return res.status(400).json({ error: 'Falta parametro usuario' });
+        const result = await pool.query(
+            `SELECT * FROM "Avisos"
+             WHERE "Remitente" = $1 OR "Destinatarios"::text LIKE $2
+             ORDER BY "Fecha_Creacion" DESC`,
+            [usuario, '%"' + usuario + '"%']
+        );
+        // Adjuntar respuestas a cada aviso
+        const avisos = result.rows;
+        for (const a of avisos) {
+            const resp = await pool.query(
+                'SELECT * FROM "Respuestas_Avisos" WHERE "ID_Aviso" = $1 ORDER BY "Fecha" ASC',
+                [a.ID_Aviso]
+            );
+            a.respuestas = resp.rows;
+        }
+        res.json({ data: avisos });
+    } catch (err) {
+        console.error('Error en GET /api/avisos:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET avisos pendientes (no completados) donde el usuario es destinatario
+app.get('/api/avisos/pendientes', async (req, res) => {
+    try {
+        const usuario = req.query.usuario;
+        if (!usuario) return res.status(400).json({ error: 'Falta parametro usuario' });
+        const result = await pool.query(
+            `SELECT COUNT(*) AS total FROM "Avisos"
+             WHERE "Completado" = FALSE AND "Destinatarios"::text LIKE $1`,
+            ['%"' + usuario + '"%']
+        );
+        res.json({ pendientes: parseInt(result.rows[0].total) });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET lista de usuarios para seleccionar destinatarios
+app.get('/api/usuarios/lista', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT "Usuario", "Nombre" FROM "Usuarios" WHERE "Activo" = TRUE ORDER BY "Nombre"');
+        res.json({ data: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST crear aviso
+app.post('/api/avisos', async (req, res) => {
+    try {
+        const { remitente, destinatarios, mensaje, importancia } = req.body;
+        if (!remitente || !destinatarios || !mensaje) return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        const nivel = ['verde', 'amarillo', 'rojo'].includes(importancia) ? importancia : 'amarillo';
+        await pool.query(
+            `INSERT INTO "Avisos" ("Remitente","Destinatarios","Mensaje","Importancia") VALUES ($1,$2,$3,$4)`,
+            [remitente, JSON.stringify(destinatarios), mensaje, nivel]
+        );
+        res.status(201).json({ success: true });
+    } catch (err) {
+        console.error('Error en POST /api/avisos:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT marcar aviso como completado
+app.put('/api/avisos/:id/completado', async (req, res) => {
+    try {
+        const result = await pool.query('UPDATE "Avisos" SET "Completado" = TRUE WHERE "ID_Aviso" = $1', [req.params.id]);
+        if (result.rowCount === 0) return res.status(404).json({ error: 'Aviso no encontrado' });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST responder aviso
+app.post('/api/avisos/:id/respuesta', async (req, res) => {
+    try {
+        const { autor, mensaje } = req.body;
+        if (!autor || !mensaje) return res.status(400).json({ error: 'Faltan campos' });
+        await pool.query(
+            'INSERT INTO "Respuestas_Avisos" ("ID_Aviso","Autor","Mensaje") VALUES ($1,$2,$3)',
+            [req.params.id, autor, mensaje]
+        );
+        res.status(201).json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log('='.repeat(60));
     console.log('  Sistema de Gestion - Espacios Publicos');

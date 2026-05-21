@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Malim</title>
     <link rel="stylesheet" href="estilo_espacios_publicos.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -26,7 +29,10 @@
                 </div>
                 <div class="field-group">
                     <label class="field-label" for="inputContrasena">Contrasena</label>
-                    <input class="field-input" type="password" id="inputContrasena" name="contrasena" placeholder="Ingrese su contrasena" required autocomplete="current-password">
+                    <div class="input-password-wrap">
+                        <input class="field-input" type="password" id="inputContrasena" name="contrasena" placeholder="Ingrese su contrasena" required autocomplete="current-password">
+                        <button type="button" class="btn-toggle-pw" id="btnTogglePw" title="Ver contrasena">&#128065;</button>
+                    </div>
                 </div>
                 <div id="loginError" class="login-error" style="display:none;"></div>
                 <button type="submit" class="btn-login" id="btnLogin">Iniciar Sesion</button>
@@ -63,6 +69,7 @@
             <button class="nav-btn" data-tab="dashboard">Indicadores</button>
             <button class="nav-btn" data-tab="consultas">Consultas</button>
             <button class="nav-btn" data-tab="admin">PMD / POA</button>
+            <button class="nav-btn" data-tab="avisos">Avisos</button>
         </div>
     </nav>
 
@@ -250,8 +257,13 @@
 
         <section id="tab-dashboard" class="tab-panel">
             <div class="panel-header">
-                <h2 class="panel-title">Dashboard de Indicadores PMD</h2>
-                <p class="panel-desc">Avance por linea de accion respecto a las metas del Plan Municipal de Desarrollo</p>
+                <div class="panel-header-top">
+                    <div>
+                        <h2 class="panel-title">Dashboard de Indicadores PMD</h2>
+                        <p class="panel-desc">Avance por linea de accion respecto a las metas del Plan Municipal de Desarrollo</p>
+                    </div>
+                    <img src="MalimFOTOLogin.png" alt="Malim" class="panel-logo">
+                </div>
             </div>
             <div class="kpi-grid" id="kpiGrid">
                 <div class="kpi-card">
@@ -273,6 +285,11 @@
             </div>
             <div class="dash-controls">
                 <button class="btn btn-primary" id="btnActualizarDash">Actualizar Dashboard</button>
+                <div class="export-search-row">
+                    <input class="search-input" type="search" id="searchDashboard" placeholder="Buscar en indicadores...">
+                    <button class="btn btn-export" id="btnExportDashXLS">&#128196; Excel</button>
+                    <button class="btn btn-export btn-export-pdf" id="btnExportDashPDF">&#128196; PDF</button>
+                </div>
             </div>
             <div class="table-wrapper">
                 <table class="data-table" id="tablaDashboard">
@@ -298,11 +315,21 @@
 
         <section id="tab-consultas" class="tab-panel">
             <div class="panel-header">
-                <h2 class="panel-title">Consulta de Actividades Registradas</h2>
-                <p class="panel-desc">Historial completo de actividades capturadas en el sistema</p>
+                <div class="panel-header-top">
+                    <div>
+                        <h2 class="panel-title">Consulta de Actividades Registradas</h2>
+                        <p class="panel-desc">Historial completo de actividades capturadas en el sistema</p>
+                    </div>
+                    <img src="MalimFOTOLogin.png" alt="Malim" class="panel-logo">
+                </div>
             </div>
             <div class="dash-controls">
                 <button class="btn btn-primary" id="btnCargarConsulta">Cargar Registros</button>
+                <div class="export-search-row">
+                    <input class="search-input" type="search" id="searchConsultas" placeholder="Buscar en consultas...">
+                    <button class="btn btn-export" id="btnExportConsultasXLS">&#128196; Excel</button>
+                    <button class="btn btn-export btn-export-pdf" id="btnExportConsultasPDF">&#128196; PDF</button>
+                </div>
             </div>
             <div id="alertConsultas" class="alert" style="display:none;"></div>
             <div class="table-wrapper">
@@ -336,8 +363,13 @@
         ================================================ -->
         <section id="tab-admin" class="tab-panel">
             <div class="panel-header">
-                <h2 class="panel-title">Administracion - PMD y POA</h2>
-                <p class="panel-desc">Gestion del Plan Municipal de Desarrollo y Programa Operativo Anual</p>
+                <div class="panel-header-top">
+                    <div>
+                        <h2 class="panel-title">Administracion - PMD y POA</h2>
+                        <p class="panel-desc">Gestion del Plan Municipal de Desarrollo y Programa Operativo Anual</p>
+                    </div>
+                    <img src="MalimFOTOLogin.png" alt="Malim" class="panel-logo">
+                </div>
             </div>
             <div class="sub-tab-nav">
                 <button class="sub-tab-btn active" data-subtab="pmd">Plan Municipal de Desarrollo (PMD)</button>
@@ -348,6 +380,11 @@
             <div id="subtab-pmd" class="sub-panel active">
                 <div class="dash-controls">
                     <button class="btn btn-primary" id="btnNuevoPMD">+ Nueva Linea PMD</button>
+                    <div class="export-search-row">
+                        <input class="search-input" type="search" id="searchPMD" placeholder="Buscar en PMD...">
+                        <button class="btn btn-export" id="btnExportPMDXLS">&#128196; Excel</button>
+                        <button class="btn btn-export btn-export-pdf" id="btnExportPMDPDF">&#128196; PDF</button>
+                    </div>
                 </div>
                 <div id="alertPMD" class="alert" style="display:none;"></div>
                 <div class="table-wrapper">
@@ -378,6 +415,11 @@
             <div id="subtab-poa" class="sub-panel" style="display:none;">
                 <div class="dash-controls">
                     <button class="btn btn-primary" id="btnNuevoPOA">+ Nuevo Registro POA</button>
+                    <div class="export-search-row">
+                        <input class="search-input" type="search" id="searchPOA" placeholder="Buscar en POA...">
+                        <button class="btn btn-export" id="btnExportPOAXLS">&#128196; Excel</button>
+                        <button class="btn btn-export btn-export-pdf" id="btnExportPOAPDF">&#128196; PDF</button>
+                    </div>
                 </div>
                 <div id="alertPOA" class="alert" style="display:none;"></div>
                 <div class="table-wrapper">
@@ -403,7 +445,49 @@
             </div>
         </section>
 
+        <!-- ================================================
+             TAB: AVISOS
+        ================================================ -->
+        <section id="tab-avisos" class="tab-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Avisos</h2>
+                <p class="panel-desc">Comunicados internos entre usuarios del sistema</p>
+            </div>
+            <div class="dash-controls">
+                <button class="btn btn-primary" id="btnNuevoAviso">+ Nuevo Aviso</button>
+            </div>
+            <div id="alertAvisos" class="alert" style="display:none;"></div>
+            <div class="table-wrapper">
+                <table class="data-table" id="tablaAvisos">
+                    <thead>
+                        <tr>
+                            <th>Importancia</th>
+                            <th>Remitente</th>
+                            <th>Destinatarios</th>
+                            <th>Mensaje</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="avisosBody">
+                        <tr><td colspan="7" class="td-empty">No hay avisos</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </main>
+
+    <!-- Floating Aviso Notification -->
+    <div id="floatingAviso" class="floating-aviso" style="display:none;">
+        <div class="floating-aviso-inner">
+            <span class="floating-aviso-icon">&#128276;</span>
+            <span>Tienes un aviso pendiente</span>
+            <button class="btn btn-sm btn-primary" id="btnFloatVerAviso">Ver</button>
+            <button class="btn btn-sm btn-outline" id="btnFloatCerrar">Cerrar</button>
+        </div>
+    </div>
 
     <footer class="app-footer">
         <p>Sistema de Gestion de Actividades &mdash; Departamento de Espacios Publicos &mdash; Ayuntamiento de Matamoros, Tamaulipas &mdash; 2026</p>
@@ -761,6 +845,69 @@
                 <div class="form-actions">
                     <button type="button" class="btn btn-outline" id="btnConfirmNo">Cancelar</button>
                     <button type="button" class="btn btn-danger" id="btnConfirmSi">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Aviso -->
+    <div id="modalNuevoAviso" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card modal-card--sm">
+            <div class="modal-header">
+                <h3 class="modal-title">Nuevo Aviso</h3>
+                <button class="modal-close" id="btnCerrarNuevoAviso" type="button">&#215;</button>
+            </div>
+            <div class="modal-body">
+                <div id="alertNuevoAviso" class="alert" style="display:none;"></div>
+                <form id="formNuevoAviso" novalidate>
+                    <div class="form-row">
+                        <div class="form-field form-field--full">
+                            <label class="field-label">Destinatarios <span class="req">*</span></label>
+                            <div id="destinatariosCheck" class="destinatarios-grid"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label" for="avisoImportancia">Importancia</label>
+                            <select class="field-input" id="avisoImportancia">
+                                <option value="verde">🟢 Verde — Informativo</option>
+                                <option value="amarillo" selected>🟡 Amarillo — Importante</option>
+                                <option value="rojo">🔴 Rojo — Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field form-field--full">
+                            <label class="field-label" for="avisoMensaje">Mensaje <span class="req">*</span></label>
+                            <textarea class="field-input" id="avisoMensaje" rows="4" placeholder="Escribe el aviso..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="btnCancelarNuevoAviso">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnEnviarAviso">Enviar Aviso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Aviso -->
+    <div id="modalVerAviso" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-card modal-card--sm">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalVerAvisoTitulo">Aviso</h3>
+                <button class="modal-close" id="btnCerrarVerAviso" type="button">&#215;</button>
+            </div>
+            <div class="modal-body">
+                <div id="avisoDetalle" class="aviso-detalle"></div>
+                <div id="avisoRespuestas" class="aviso-respuestas"></div>
+                <div class="form-row" id="avisoBtnRow">
+                    <button class="btn btn-primary" id="btnCompletarAviso">&#10003; Completado</button>
+                    <button class="btn btn-outline" id="btnToggleRespuesta">Responder</button>
+                </div>
+                <div id="avisoPanelRespuesta" style="display:none;" class="aviso-reply-panel">
+                    <textarea class="field-input" id="avisoRespuestaTxt" rows="3" placeholder="Escribe tu respuesta..."></textarea>
+                    <button class="btn btn-primary" id="btnEnviarRespuesta" style="margin-top:8px;">Enviar Respuesta</button>
                 </div>
             </div>
         </div>
