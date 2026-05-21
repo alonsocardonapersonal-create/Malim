@@ -1232,23 +1232,88 @@ function exportarExcel(tablaId, nombre) {
     XLSX.writeFile(wb, nombre + '.xlsx');
 }
 
-function exportarPDF(tablaId, nombre) {
+function exportarPDF(tablaId, titulo) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape' });
-    doc.setFontSize(13);
-    doc.text(nombre, 14, 15);
-    doc.autoTable({ html: '#' + tablaId, startY: 22, styles: { fontSize: 7 } });
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // Obtener usuario actual
+    const u = getUsuarioActual();
+    const usuario = u ? (u.Nombre || u.Usuario) : 'Usuario';
+    const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+    const nombre = titulo.replace(/ /g, '_');
+
+    // --- Logo (esquina superior derecha) ---
+    try {
+        const canvas = document.createElement('canvas');
+        const img = document.querySelector('.login-logo') || document.getElementById('loginLogo');
+        // Intentar cargar imagen desde archivo local
+        const logoImg = new Image();
+        logoImg.src = 'MalimFOTOLogin.png';
+        // Dibujar logo si se cargó
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+            const aspect = logoImg.naturalWidth / logoImg.naturalHeight;
+            const logoH = 18;
+            const logoW = logoH * aspect;
+            doc.addImage(logoImg, 'PNG', 297 - logoW - 10, 6, logoW, logoH);
+        }
+    } catch (e) { /* logo opcional */ }
+
+    // --- Encabezado institucional ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Ayuntamiento de Matamoros, Tamaulipas', 14, 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text('Departamento de Espacios Publicos', 14, 20);
+
+    // --- Linea divisoria ---
+    doc.setDrawColor(40, 80, 160);
+    doc.setLineWidth(0.5);
+    doc.line(14, 24, 283, 24);
+
+    // --- Titulo del reporte ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(titulo, 14, 31);
+
+    // --- Metadatos ---
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text('Fecha de generacion: ' + fecha, 14, 37);
+    doc.text('Generado por: ' + usuario, 14, 42);
+    doc.setTextColor(0);
+
+    // --- Tabla ---
+    doc.autoTable({
+        html: '#' + tablaId,
+        startY: 47,
+        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [28, 78, 216], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 255] },
+        margin: { left: 14, right: 14 }
+    });
+
+    // --- Pie de pagina ---
+    const totalPag = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPag; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text('Sistema de Gestion de Espacios Publicos  |  Malim v2.0  |  Pagina ' + i + ' de ' + totalPag, 14, doc.internal.pageSize.height - 6);
+    }
+
     doc.save(nombre + '.pdf');
 }
 
 document.getElementById('btnExportDashXLS').addEventListener('click', () => exportarExcel('tablaDashboard',  'Indicadores_PMD'));
-document.getElementById('btnExportDashPDF').addEventListener('click', () => exportarPDF('tablaDashboard',   'Indicadores_PMD'));
+document.getElementById('btnExportDashPDF').addEventListener('click', () => exportarPDF('tablaDashboard',   'Dashboard de Indicadores PMD'));
 document.getElementById('btnExportConsultasXLS').addEventListener('click', () => exportarExcel('tablaConsultas', 'Consulta_Actividades'));
-document.getElementById('btnExportConsultasPDF').addEventListener('click', () => exportarPDF('tablaConsultas',  'Consulta_Actividades'));
+document.getElementById('btnExportConsultasPDF').addEventListener('click', () => exportarPDF('tablaConsultas',  'Consulta de Actividades Registradas'));
 document.getElementById('btnExportPMDXLS').addEventListener('click', () => exportarExcel('tablaPMD', 'PMD'));
-document.getElementById('btnExportPMDPDF').addEventListener('click', () => exportarPDF('tablaPMD',  'PMD'));
+document.getElementById('btnExportPMDPDF').addEventListener('click', () => exportarPDF('tablaPMD',  'Plan Municipal de Desarrollo'));
 document.getElementById('btnExportPOAXLS').addEventListener('click', () => exportarExcel('tablaPOA', 'POA'));
-document.getElementById('btnExportPOAPDF').addEventListener('click', () => exportarPDF('tablaPOA',  'POA'));
+document.getElementById('btnExportPOAPDF').addEventListener('click', () => exportarPDF('tablaPOA',  'Programa Operativo Anual'));
 
 // =====================================================
 // AVISOS

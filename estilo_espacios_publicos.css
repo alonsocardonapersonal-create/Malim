@@ -699,20 +699,38 @@ select.field-input { cursor: pointer; }
 /* =====================================================
    EXPORT + SEARCH ROW
    ===================================================== */
+/* Export + Search row — search a la derecha */
 .export-search-row {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;  /* todo alineado a la derecha */
+}
+.search-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+.search-wrap::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
 }
 .search-input {
-    padding: 7px 12px;
+    padding: 7px 12px 7px 30px;
     border: 1px solid var(--border, #e2e8f0);
     border-radius: 6px;
     font-size: 13px;
     background: var(--surface, #fff);
     color: var(--text, #1e293b);
-    min-width: 180px;
+    min-width: 160px;
     outline: none;
     transition: border-color 0.2s;
 }
@@ -734,34 +752,89 @@ select.field-input { cursor: pointer; }
 /* =====================================================
    FLOATING AVISO NOTIFICATION
    ===================================================== */
+/* =====================================================
+   FLOATING AVISO NOTIFICATION — alta visibilidad
+   ===================================================== */
 .floating-aviso {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: 28px;
+    right: 28px;
     z-index: 2000;
-    background: var(--surface, #fff);
-    border: 2px solid #f59e0b;
+    background: #1e3a8a;
+    border-left: 6px solid #f59e0b;
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    padding: 14px 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    padding: 16px 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    animation: slideUpIn 0.35s ease;
+    gap: 16px;
+    min-width: 280px;
+    animation: slideUpIn 0.4s cubic-bezier(.22,1,.36,1);
 }
 @keyframes slideUpIn {
-    from { transform: translateY(30px); opacity: 0; }
+    from { transform: translateY(40px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
 }
-.floating-aviso-inner {
+.floating-aviso-pulse {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f59e0b;
+    flex-shrink: 0;
+    animation: pulse 1.2s ease infinite;
+}
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.6); }
+    50%       { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+}
+.floating-aviso-body { flex: 1; }
+.floating-aviso-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #f59e0b;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.floating-aviso-sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin-top: 2px;
+}
+.floating-aviso-btns {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text, #1e293b);
+    gap: 8px;
 }
-.floating-aviso-icon { font-size: 20px; }
+.floating-btn-ver {
+    background: #f59e0b;
+    color: #1e293b;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+.floating-btn-ver:hover { background: #fbbf24; }
+.floating-btn-close {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #cbd5e1;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: background 0.2s;
+}
+.floating-btn-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
 /* =====================================================
    BADGES DE IMPORTANCIA / ESTADO

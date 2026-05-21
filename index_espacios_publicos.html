@@ -257,13 +257,8 @@
 
         <section id="tab-dashboard" class="tab-panel">
             <div class="panel-header">
-                <div class="panel-header-top">
-                    <div>
-                        <h2 class="panel-title">Dashboard de Indicadores PMD</h2>
-                        <p class="panel-desc">Avance por linea de accion respecto a las metas del Plan Municipal de Desarrollo</p>
-                    </div>
-                    <img src="MalimFOTOLogin.png" alt="Malim" class="panel-logo">
-                </div>
+                <h2 class="panel-title">Dashboard de Indicadores PMD</h2>
+                <p class="panel-desc">Avance por linea de accion respecto a las metas del Plan Municipal de Desarrollo</p>
             </div>
             <div class="kpi-grid" id="kpiGrid">
                 <div class="kpi-card">
@@ -286,9 +281,9 @@
             <div class="dash-controls">
                 <button class="btn btn-primary" id="btnActualizarDash">Actualizar Dashboard</button>
                 <div class="export-search-row">
-                    <input class="search-input" type="search" id="searchDashboard" placeholder="Buscar en indicadores...">
-                    <button class="btn btn-export" id="btnExportDashXLS">&#128196; Excel</button>
-                    <button class="btn btn-export btn-export-pdf" id="btnExportDashPDF">&#128196; PDF</button>
+                    <div class="search-wrap"><input class="search-input" type="search" id="searchDashboard" placeholder="Buscar"></div>
+                    <button class="btn btn-export" id="btnExportDashXLS">Excel</button>
+                    <button class="btn btn-export btn-export-pdf" id="btnExportDashPDF">PDF</button>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -315,20 +310,15 @@
 
         <section id="tab-consultas" class="tab-panel">
             <div class="panel-header">
-                <div class="panel-header-top">
-                    <div>
-                        <h2 class="panel-title">Consulta de Actividades Registradas</h2>
-                        <p class="panel-desc">Historial completo de actividades capturadas en el sistema</p>
-                    </div>
-                    <img src="MalimFOTOLogin.png" alt="Malim" class="panel-logo">
-                </div>
+                <h2 class="panel-title">Consulta de Actividades Registradas</h2>
+                <p class="panel-desc">Historial completo de actividades capturadas en el sistema</p>
             </div>
             <div class="dash-controls">
                 <button class="btn btn-primary" id="btnCargarConsulta">Cargar Registros</button>
                 <div class="export-search-row">
-                    <input class="search-input" type="search" id="searchConsultas" placeholder="Buscar en consultas...">
-                    <button class="btn btn-export" id="btnExportConsultasXLS">&#128196; Excel</button>
-                    <button class="btn btn-export btn-export-pdf" id="btnExportConsultasPDF">&#128196; PDF</button>
+                    <div class="search-wrap"><input class="search-input" type="search" id="searchConsultas" placeholder="Buscar"></div>
+                    <button class="btn btn-export" id="btnExportConsultasXLS">Excel</button>
+                    <button class="btn btn-export btn-export-pdf" id="btnExportConsultasPDF">PDF</button>
                 </div>
             </div>
             <div id="alertConsultas" class="alert" style="display:none;"></div>
@@ -363,13 +353,8 @@
         ================================================ -->
         <section id="tab-admin" class="tab-panel">
             <div class="panel-header">
-                <div class="panel-header-top">
-                    <div>
-                        <h2 class="panel-title">Administracion - PMD y POA</h2>
-                        <p class="panel-desc">Gestion del Plan Municipal de Desarrollo y Programa Operativo Anual</p>
-                    </div>
-                    <img src="MalimFOTOLogin.png" alt="Malim" class="panel-logo">
-                </div>
+                <h2 class="panel-title">Administracion - PMD y POA</h2>
+                <p class="panel-desc">Gestion del Plan Municipal de Desarrollo y Programa Operativo Anual</p>
             </div>
             <div class="sub-tab-nav">
                 <button class="sub-tab-btn active" data-subtab="pmd">Plan Municipal de Desarrollo (PMD)</button>
@@ -381,9 +366,9 @@
                 <div class="dash-controls">
                     <button class="btn btn-primary" id="btnNuevoPMD">+ Nueva Linea PMD</button>
                     <div class="export-search-row">
-                        <input class="search-input" type="search" id="searchPMD" placeholder="Buscar en PMD...">
-                        <button class="btn btn-export" id="btnExportPMDXLS">&#128196; Excel</button>
-                        <button class="btn btn-export btn-export-pdf" id="btnExportPMDPDF">&#128196; PDF</button>
+                        <div class="search-wrap"><input class="search-input" type="search" id="searchPMD" placeholder="Buscar"></div>
+                        <button class="btn btn-export" id="btnExportPMDXLS">Excel</button>
+                        <button class="btn btn-export btn-export-pdf" id="btnExportPMDPDF">PDF</button>
                     </div>
                 </div>
                 <div id="alertPMD" class="alert" style="display:none;"></div>
@@ -416,9 +401,9 @@
                 <div class="dash-controls">
                     <button class="btn btn-primary" id="btnNuevoPOA">+ Nuevo Registro POA</button>
                     <div class="export-search-row">
-                        <input class="search-input" type="search" id="searchPOA" placeholder="Buscar en POA...">
-                        <button class="btn btn-export" id="btnExportPOAXLS">&#128196; Excel</button>
-                        <button class="btn btn-export btn-export-pdf" id="btnExportPOAPDF">&#128196; PDF</button>
+                        <div class="search-wrap"><input class="search-input" type="search" id="searchPOA" placeholder="Buscar"></div>
+                        <button class="btn btn-export" id="btnExportPOAXLS">Excel</button>
+                        <button class="btn btn-export btn-export-pdf" id="btnExportPOAPDF">PDF</button>
                     </div>
                 </div>
                 <div id="alertPOA" class="alert" style="display:none;"></div>
@@ -481,11 +466,14 @@
 
     <!-- Floating Aviso Notification -->
     <div id="floatingAviso" class="floating-aviso" style="display:none;">
-        <div class="floating-aviso-inner">
-            <span class="floating-aviso-icon">&#128276;</span>
-            <span>Tienes un aviso pendiente</span>
-            <button class="btn btn-sm btn-primary" id="btnFloatVerAviso">Ver</button>
-            <button class="btn btn-sm btn-outline" id="btnFloatCerrar">Cerrar</button>
+        <div class="floating-aviso-pulse"></div>
+        <div class="floating-aviso-body">
+            <div class="floating-aviso-title">AVISO PENDIENTE</div>
+            <div class="floating-aviso-sub">Tienes un aviso sin revisar</div>
+        </div>
+        <div class="floating-aviso-btns">
+            <button class="btn floating-btn-ver" id="btnFloatVerAviso">Ver ahora</button>
+            <button class="floating-btn-close" id="btnFloatCerrar">&times;</button>
         </div>
     </div>
 
