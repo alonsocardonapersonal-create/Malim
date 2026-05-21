@@ -100,7 +100,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             card.classList.remove('login-success');
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('headerUserName').textContent = data.usuario.Nombre;
+            document.getElementById('headerUserName').textContent = 'Usuario: ' + data.usuario.Usuario;
             setHeaderDate();
             setDefaultDate();
             cargarCatalogos();
@@ -840,7 +840,7 @@ function esc(val) {
             const u = JSON.parse(usr);
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('headerUserName').textContent = u.Nombre;
+            document.getElementById('headerUserName').textContent = 'Usuario: ' + u.Usuario;
             setHeaderDate();
             setDefaultDate();
             cargarCatalogos();
