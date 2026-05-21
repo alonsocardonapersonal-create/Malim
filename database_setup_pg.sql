@@ -312,7 +312,8 @@ INSERT INTO "Catalogo_Areas" ("Numero_Area","Ubicacion","Tipo_Area","Entre_Calle
 -- ============================================================
 INSERT INTO "Usuarios" ("Usuario", "Contrasena", "Nombre") VALUES
 ('admin',     '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'Administrador del Sistema'),
-('celedonio', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Celedonio - Jefe de Departamento');
+('celedonio', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Celedonio - Jefe de Departamento'),
+('patolucas', '3538a1ef2e113da64249eea7bd068b585ec7ce5df73b2d1e319d8c9bf47eb314', 'Pato lucas');
 
 -- ============================================================
 -- DATOS: PMD

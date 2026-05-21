@@ -280,10 +280,12 @@
             </div>
             <div class="dash-controls">
                 <button class="btn btn-primary" id="btnActualizarDash">Actualizar Dashboard</button>
-                <div class="export-search-row">
-                    <div class="search-wrap"><input class="search-input" type="search" id="searchDashboard" placeholder="Buscar"></div>
+                <div class="export-btns">
                     <button class="btn btn-export" id="btnExportDashXLS">Excel</button>
                     <button class="btn btn-export btn-export-pdf" id="btnExportDashPDF">PDF</button>
+                </div>
+                <div class="search-wrap">
+                    <input class="search-input" type="search" id="searchDashboard" placeholder="Buscar">
                 </div>
             </div>
             <div class="table-wrapper">
@@ -315,10 +317,12 @@
             </div>
             <div class="dash-controls">
                 <button class="btn btn-primary" id="btnCargarConsulta">Cargar Registros</button>
-                <div class="export-search-row">
-                    <div class="search-wrap"><input class="search-input" type="search" id="searchConsultas" placeholder="Buscar"></div>
+                <div class="export-btns">
                     <button class="btn btn-export" id="btnExportConsultasXLS">Excel</button>
                     <button class="btn btn-export btn-export-pdf" id="btnExportConsultasPDF">PDF</button>
+                </div>
+                <div class="search-wrap">
+                    <input class="search-input" type="search" id="searchConsultas" placeholder="Buscar">
                 </div>
             </div>
             <div id="alertConsultas" class="alert" style="display:none;"></div>
@@ -365,10 +369,12 @@
             <div id="subtab-pmd" class="sub-panel active">
                 <div class="dash-controls">
                     <button class="btn btn-primary" id="btnNuevoPMD">+ Nueva Linea PMD</button>
-                    <div class="export-search-row">
-                        <div class="search-wrap"><input class="search-input" type="search" id="searchPMD" placeholder="Buscar"></div>
+                    <div class="export-btns">
                         <button class="btn btn-export" id="btnExportPMDXLS">Excel</button>
                         <button class="btn btn-export btn-export-pdf" id="btnExportPMDPDF">PDF</button>
+                    </div>
+                    <div class="search-wrap">
+                        <input class="search-input" type="search" id="searchPMD" placeholder="Buscar">
                     </div>
                 </div>
                 <div id="alertPMD" class="alert" style="display:none;"></div>
@@ -400,10 +406,12 @@
             <div id="subtab-poa" class="sub-panel" style="display:none;">
                 <div class="dash-controls">
                     <button class="btn btn-primary" id="btnNuevoPOA">+ Nuevo Registro POA</button>
-                    <div class="export-search-row">
-                        <div class="search-wrap"><input class="search-input" type="search" id="searchPOA" placeholder="Buscar"></div>
+                    <div class="export-btns">
                         <button class="btn btn-export" id="btnExportPOAXLS">Excel</button>
                         <button class="btn btn-export btn-export-pdf" id="btnExportPOAPDF">PDF</button>
+                    </div>
+                    <div class="search-wrap">
+                        <input class="search-input" type="search" id="searchPOA" placeholder="Buscar">
                     </div>
                 </div>
                 <div id="alertPOA" class="alert" style="display:none;"></div>
@@ -466,16 +474,18 @@
 
     <!-- Floating Aviso Notification -->
     <div id="floatingAviso" class="floating-aviso" style="display:none;">
-        <div class="floating-aviso-pulse"></div>
-        <div class="floating-aviso-body">
-            <div class="floating-aviso-title">AVISO PENDIENTE</div>
-            <div class="floating-aviso-sub">Tienes un aviso sin revisar</div>
-        </div>
-        <div class="floating-aviso-btns">
-            <button class="btn floating-btn-ver" id="btnFloatVerAviso">Ver ahora</button>
+        <div class="floating-aviso-inner">
+            <span class="floating-aviso-icon">&#9888;</span>
+            <div>
+                <div class="floating-aviso-title">Tienes un aviso pendiente</div>
+                <div class="floating-aviso-sub">Revisa la seccion de Avisos</div>
+            </div>
+            <button class="btn btn-primary floating-btn-ver" id="btnFloatVerAviso">Ver aviso</button>
             <button class="floating-btn-close" id="btnFloatCerrar">&times;</button>
         </div>
     </div>
+
+    <img id="logoParaPDF" src="MalimFOTOLogin.png" alt="" style="display:none;" crossorigin="anonymous">
 
     <footer class="app-footer">
         <p>Sistema de Gestion de Actividades &mdash; Departamento de Espacios Publicos &mdash; Ayuntamiento de Matamoros, Tamaulipas &mdash; 2026</p>

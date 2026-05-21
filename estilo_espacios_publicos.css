@@ -432,7 +432,10 @@ select.field-input { cursor: pointer; }
 /* ============================================================
    TABLA DE DATOS
 ============================================================ */
-.dash-controls { display: flex; gap: 12px; margin-bottom: 18px; }
+.dash-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.export-btns   { display: flex; gap: 8px; }
+/* Search al extremo derecho con margin-left: auto */
+.dash-controls .search-wrap { margin-left: auto; }
 
 /* ============================================================
    SUB-TABS (Admin PMD/POA)
@@ -753,76 +756,55 @@ select.field-input { cursor: pointer; }
    FLOATING AVISO NOTIFICATION
    ===================================================== */
 /* =====================================================
-   FLOATING AVISO NOTIFICATION — alta visibilidad
+   FLOATING AVISO NOTIFICATION
    ===================================================== */
 .floating-aviso {
     position: fixed;
     bottom: 28px;
     right: 28px;
     z-index: 2000;
-    background: #1e3a8a;
-    border-left: 6px solid #f59e0b;
-    border-radius: 12px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    min-width: 280px;
+    background: var(--green-bg, #edf7f3);
+    border: 2px solid var(--green-main, #4a9880);
+    border-left: 5px solid var(--green-dark, #2e6b5a);
+    border-radius: 10px;
+    box-shadow: 0 6px 30px rgba(46,107,90,0.25), 0 2px 8px rgba(0,0,0,0.12);
+    padding: 0;
+    min-width: 320px;
     animation: slideUpIn 0.4s cubic-bezier(.22,1,.36,1);
 }
 @keyframes slideUpIn {
     from { transform: translateY(40px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
 }
-.floating-aviso-pulse {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #f59e0b;
-    flex-shrink: 0;
-    animation: pulse 1.2s ease infinite;
-}
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.6); }
-    50%       { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
-}
-.floating-aviso-body { flex: 1; }
-.floating-aviso-title {
-    font-size: 12px;
-    font-weight: 800;
-    color: #f59e0b;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-.floating-aviso-sub {
-    font-size: 13px;
-    font-weight: 500;
-    color: #e2e8f0;
-    margin-top: 2px;
-}
-.floating-aviso-btns {
+.floating-aviso-inner {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 14px;
+    padding: 16px 18px;
+}
+.floating-aviso-icon {
+    font-size: 22px;
+    color: var(--green-dark, #2e6b5a);
+    flex-shrink: 0;
+}
+.floating-aviso-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green-dark, #2e6b5a);
+}
+.floating-aviso-sub {
+    font-size: 12px;
+    color: var(--green-medium, #5aaa8e);
+    margin-top: 2px;
 }
 .floating-btn-ver {
-    background: #f59e0b;
-    color: #1e293b;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
     white-space: nowrap;
-    transition: background 0.2s;
+    flex-shrink: 0;
 }
-.floating-btn-ver:hover { background: #fbbf24; }
 .floating-btn-close {
     background: none;
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #cbd5e1;
+    border: 1px solid var(--green-pale, #c8e8df);
+    color: var(--green-dark, #2e6b5a);
     border-radius: 6px;
     width: 28px;
     height: 28px;
@@ -830,11 +812,16 @@ select.field-input { cursor: pointer; }
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1;
-    transition: background 0.2s;
+    flex-shrink: 0;
+    transition: background 0.15s;
 }
-.floating-btn-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.floating-btn-close:hover { background: var(--green-pale, #c8e8df); }
+
+/* Fila completada al 100% en el dashboard */
+.tr-completado { background: #d1fae5 !important; }
+.tr-completado:hover { background: #bbf7d0 !important; }
 
 /* =====================================================
    BADGES DE IMPORTANCIA / ESTADO

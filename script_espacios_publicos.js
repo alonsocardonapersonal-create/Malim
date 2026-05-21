@@ -518,6 +518,7 @@ async function cargarDashboard() {
             const pct  = parseFloat(f.Porcentaje_Avance || 0).toFixed(1);
             const sem  = buildSemaforo(f.Semaforo);
             const tr   = document.createElement('tr');
+            if (parseFloat(pct) >= 100) tr.classList.add('tr-completado');
             tr.innerHTML =
                 '<td>' + esc(f.Clave_Programa) + '</td>' +
                 '<td>' + esc(f.Clave_Estrategia) + '</td>' +
@@ -1236,50 +1237,57 @@ function exportarPDF(tablaId, titulo) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-    // Obtener usuario actual
-    const u = getUsuarioActual();
+    const u     = getUsuarioActual();
     const usuario = u ? (u.Nombre || u.Usuario) : 'Usuario';
     const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
     const nombre = titulo.replace(/ /g, '_');
 
-    // --- Logo (esquina superior derecha) ---
+    // Colores institucionales (verde de la página)
+    const VERDE_OSCURO  = [46, 107, 90];   // --green-dark  #2e6b5a
+    const VERDE_MAIN    = [74, 152, 128];  // --green-main  #4a9880
+    const VERDE_CABEZA  = [46, 107, 90];
+
+    // --- Logo (preloaded, esquina superior derecha) ---
     try {
-        const canvas = document.createElement('canvas');
-        const img = document.querySelector('.login-logo') || document.getElementById('loginLogo');
-        // Intentar cargar imagen desde archivo local
-        const logoImg = new Image();
-        logoImg.src = 'MalimFOTOLogin.png';
-        // Dibujar logo si se cargó
-        if (logoImg.complete && logoImg.naturalWidth > 0) {
-            const aspect = logoImg.naturalWidth / logoImg.naturalHeight;
-            const logoH = 18;
-            const logoW = logoH * aspect;
-            doc.addImage(logoImg, 'PNG', 297 - logoW - 10, 6, logoW, logoH);
+        const logoEl = document.getElementById('logoParaPDF');
+        if (logoEl && logoEl.complete && logoEl.naturalWidth > 0) {
+            const canvas = document.createElement('canvas');
+            canvas.width  = logoEl.naturalWidth;
+            canvas.height = logoEl.naturalHeight;
+            canvas.getContext('2d').drawImage(logoEl, 0, 0);
+            const imgData = canvas.toDataURL('image/png');
+            const aspect  = logoEl.naturalWidth / logoEl.naturalHeight;
+            const logoH   = 18;
+            const logoW   = logoH * aspect;
+            doc.addImage(imgData, 'PNG', 297 - logoW - 10, 6, logoW, logoH);
         }
     } catch (e) { /* logo opcional */ }
 
     // --- Encabezado institucional ---
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
+    doc.setTextColor(...VERDE_OSCURO);
     doc.text('Ayuntamiento de Matamoros, Tamaulipas', 14, 14);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
     doc.text('Departamento de Espacios Publicos', 14, 20);
 
-    // --- Linea divisoria ---
-    doc.setDrawColor(40, 80, 160);
-    doc.setLineWidth(0.5);
+    // --- Línea divisoria verde ---
+    doc.setDrawColor(...VERDE_MAIN);
+    doc.setLineWidth(0.7);
     doc.line(14, 24, 283, 24);
 
-    // --- Titulo del reporte ---
+    // --- Título del reporte ---
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
+    doc.setTextColor(...VERDE_OSCURO);
     doc.text(titulo, 14, 31);
 
     // --- Metadatos ---
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(100);
+    doc.setTextColor(100, 100, 100);
     doc.text('Fecha de generacion: ' + fecha, 14, 37);
     doc.text('Generado por: ' + usuario, 14, 42);
     doc.setTextColor(0);
@@ -1289,18 +1297,21 @@ function exportarPDF(tablaId, titulo) {
         html: '#' + tablaId,
         startY: 47,
         styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [28, 78, 216], textColor: 255, fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [245, 247, 255] },
+        headStyles: { fillColor: VERDE_CABEZA, textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [237, 247, 243] },  // --green-bg
         margin: { left: 14, right: 14 }
     });
 
-    // --- Pie de pagina ---
+    // --- Pie de página ---
     const totalPag = doc.getNumberOfPages();
     for (let i = 1; i <= totalPag; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text('Sistema de Gestion de Espacios Publicos  |  Malim v2.0  |  Pagina ' + i + ' de ' + totalPag, 14, doc.internal.pageSize.height - 6);
+        doc.text(
+            'Sistema de Gestion de Espacios Publicos  |  Malim v2.0  |  Pagina ' + i + ' de ' + totalPag,
+            14, doc.internal.pageSize.height - 6
+        );
     }
 
     doc.save(nombre + '.pdf');
